@@ -15,8 +15,9 @@ def create_app() -> Flask:
     f = config.factory(app_context if app_context else 'development')
     app.config.from_object(f)
     
-    from app.resources import home
+    from app.resources import home, certificado_bp
     app.register_blueprint(home, url_prefix='/api/v1')
+    app.register_blueprint(certificado_bp, url_prefix='/api/v1')
 
     @app.shell_context_processor
     def ctx():

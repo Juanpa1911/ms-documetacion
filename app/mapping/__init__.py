@@ -1,0 +1,3 @@
+from .alumno_mapping import AlumnoMapping
+from .especialidad_mapping import EspecialidadMapping
+from .tipodocumento_mapping import TipoDocumentoMapping

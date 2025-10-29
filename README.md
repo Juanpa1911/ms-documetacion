@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+# ms-documentacion-sysacad
+=======
 # uv
 ## Instalación
 1. Abrir **consola de PowerShell como administrador**.  
@@ -37,3 +40,4 @@ granian --port 5000 --host 0.0.0.0 --http auto --workers 4 --blocking-threads 4 
 https://github.com/emmett-framework/granian
 
 
+>>>>>>> 8b5a500 (Initial commit)
