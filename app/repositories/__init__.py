@@ -1,0 +1,1 @@
+from .alumno_repositorio import AlumnoRepository
