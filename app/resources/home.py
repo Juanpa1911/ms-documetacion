@@ -1,7 +1,12 @@
 from flask.wrappers import Response
 from flask import jsonify, Blueprint
+<<<<<<< Updated upstream
 from app.services.redis_services import redis_service
 import logging
+=======
+import logging
+from app.services.redis_service import RedisService
+>>>>>>> Stashed changes
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +26,7 @@ def index() -> Response:
 
 @home.route('/health', methods=['GET'])
 def health() -> Response:
+<<<<<<< Updated upstream
     """
     Health check endpoint para Docker y Traefik.
     Verifica que el servicio y sus dependencias estén funcionando.
@@ -42,3 +48,18 @@ def health() -> Response:
     
     status_code = 200 if health_status["status"] == "healthy" else 503
     return jsonify(health_status), status_code
+=======
+    """Health check endpoint para Docker y Kubernetes"""
+    redis_status = "connected" if RedisService.health_check() else "disconnected"
+    
+    response = {
+        "service": "ms-documentacion",
+        "status": "healthy",
+        "redis": redis_status
+    }
+    
+    # Si Redis está caído, el servicio sigue funcionando pero sin caché
+    status_code = 200
+    
+    return jsonify(response), status_code
+>>>>>>> Stashed changes
