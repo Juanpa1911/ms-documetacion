@@ -75,7 +75,7 @@ FLASK_CONTEXT=development
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_DB=0
-REDIS_PASSWORD=tu_password_segura
+REDIS_PASSWORD=<tu_password_aqui>
 
 # Cache TTL (segundos)
 CACHE_ALUMNO_TTL=300        # 5 minutos
@@ -99,7 +99,7 @@ maxmemory 100mb
 maxmemory-policy volatile-lfu
 
 # Seguridad
-requirepass tu_password_segura
+requirepass <tu_password_aqui>
 
 # Persistencia
 save 900 1
@@ -135,7 +135,7 @@ save 60 10000
 **Terminal 1 - Iniciar Redis con Docker:**
 
 ```powershell
-docker run -d -p 6379:6379 --name redis --rm redis:8.2-alpine redis-server --requirepass tu_password_segura --maxmemory 100mb --maxmemory-policy volatile-lfu
+docker run -d -p 6379:6379 --name redis --rm redis:8.2-alpine redis-server --requirepass <tu_password> --maxmemory 100mb --maxmemory-policy volatile-lfu
 ```
 
 **Terminal 2 - Iniciar servicios mock:**
