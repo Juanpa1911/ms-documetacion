@@ -1,14 +1,15 @@
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-
-from app.models import TipoDocumento,Especialidad
+if TYPE_CHECKING:
+    from .tipodocumento import TipoDocumento
+    from .especialidad import Especialidad
 
 @dataclass(init=False, repr=True, eq=True)
-class Alumno():
-  
-    id:int 
-    nombre:str 
-    apellido:str 
+class Alumno:
+    id: int
+    nombre: str
+    apellido: str
     nrodocumento: str
-    tipo_documento :TipoDocumento
-    especialidad :Especialidad
+    tipo_documento: 'TipoDocumento'
+    especialidad: 'Especialidad'
