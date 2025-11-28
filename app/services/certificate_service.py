@@ -1,9 +1,14 @@
 import datetime
 import requests
+import logging
 from io import BytesIO
+from flask import current_app
 from app.mapping import AlumnoMapping
 from app.models import Alumno
-from app.services import obtener_tipo_documento
+from app.services.documentos_office_service import obtener_tipo_documento
+from app.services.redis_service import RedisService
+
+logger = logging.getLogger(__name__)
 
 class CertificateService:
     @staticmethod
@@ -30,14 +35,10 @@ class CertificateService:
     
     @staticmethod
     def _obtener_contexto_alumno(alumno: Alumno) -> dict:
-        especialidad = alumno.especialidad
-        facultad = especialidad.facultad
-        universidad = facultad.universidad
         return {
             "alumno": alumno,
-            "especialidad": especialidad,
-            "facultad": facultad,
-            "universidad": universidad,
+            "especialidad": alumno.especialidad,
+            "facultad": alumno.especialidad.facultad,
             "fecha": CertificateService._obtener_fechaactual()
         }
     
@@ -49,13 +50,31 @@ class CertificateService:
     
     @staticmethod
     def _buscar_alumno_por_id(id: int) -> Alumno:
-        #TODO: Obtener url de variable de entorno
-        URL_ALUMNOS = 'http://alumno-service/api/v1/alumnos'
+        # Intentar obtener del caché primero
+        cache_key = f"alumno:{id}"
+        cached_data = RedisService.get(cache_key)
+        
+        if cached_data:
+            logger.info(f"Alumno {id} obtenido desde caché")
+            alumno_mapping = AlumnoMapping()
+            return alumno_mapping.load(cached_data)
+        
+        # Si no está en caché, consultar al microservicio
+        logger.info(f"Alumno {id} no está en caché, consultando microservicio")
+        URL_ALUMNOS = current_app.config.get('ALUMNO_SERVICE_URL')
         alumno_mapping = AlumnoMapping()
-        r = requests.get(f'{URL_ALUMNOS}/{id}')
+        
+        r = requests.get(f'{URL_ALUMNOS}/alumnos/{id}')
         if r.status_code == 200:
-            result = alumno_mapping.load(r.json())  
+            data = r.json()
+            result = alumno_mapping.load(data)
+            
+            # Guardar en caché para futuras consultas
+            ttl = current_app.config.get('CACHE_ALUMNO_TTL', 300)
+            RedisService.set(cache_key, data, ttl)
+            logger.info(f"Alumno {id} almacenado en caché por {ttl}s")
+            
+            return result
         else:
             raise Exception(f'Error al obtener el alumno con id {id}: {r.status_code}')
-        return result
     

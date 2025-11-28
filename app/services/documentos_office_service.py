@@ -3,7 +3,6 @@ from io import BytesIO
 import os
 from flask import current_app, render_template
 from python_odt_template import ODTTemplate
-from weasyprint import HTML
 from python_odt_template.jinja import get_odt_renderer
 from docxtpl import DocxTemplate
 import jinja2
@@ -21,6 +20,16 @@ class PDFDocument(Document):
     @staticmethod
     # pyrefly: ignore  # bad-override
     def generar(carpeta: str, plantilla: str, context: dict) -> BytesIO:
+        # Importación lazy de weasyprint para evitar error al inicio si GTK no está instalado
+        try:
+            from weasyprint import HTML
+        except OSError as e:
+            raise RuntimeError(
+                "WeasyPrint requiere GTK instalado en Windows. "
+                "Por favor instala GTK desde: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases "
+                "O usa los formatos ODT o DOCX que funcionan sin dependencias adicionales."
+            ) from e
+        
         # Construir base_url file:/// para que WeasyPrint pueda abrir archivos locales
         base_path = current_app.root_path.replace('\\', '/')
         base_url = f"file:///{base_path}"
