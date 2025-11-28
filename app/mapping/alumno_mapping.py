@@ -1,18 +1,15 @@
 from marshmallow import Schema, fields, post_load, validate
 from app.models import Alumno
+from .tipodocumento_mapping import TipoDocumentoMapping
+from .especialidad_mapping import EspecialidadMapping
 
 class AlumnoMapping(Schema):
-    id = fields.Integer(dump_only=True)
+    id = fields.Integer()
     nombre = fields.String(required=True, validate=validate.Length(min=1, max=50))
     apellido = fields.String(required=True, validate=validate.Length(min=1, max=50))
     nrodocumento = fields.String(required=True, validate=validate.Length(min=1, max=50))
-    tipo_documento_id = fields.Integer(required=True)
-    fecha_nacimiento = fields.Date(required=True)
-    sexo = fields.String(required=True, validate=validate.Length(equal=1))
-    nro_legajo = fields.Integer(required=True)
-    fecha_ingreso = fields.Date(required=True)
-    
-    especialidad_id = fields.Integer(required=True)
+    tipo_documento = fields.Nested(TipoDocumentoMapping, required=True)
+    especialidad = fields.Nested(EspecialidadMapping, required=True)
 
     @post_load
     def nuevo_alumno(self, data, **kwargs):
