@@ -1,2 +1,3 @@
 from .certificate_service import CertificateService
+from .redis_service import RedisService
 from app.services.documentos_office_service import obtener_tipo_documento
