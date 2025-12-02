@@ -1,0 +1,27 @@
+services:
+  documentos-service:
+      image: gestion-documentos:v1.0.0
+      deploy:
+        replicas: 2
+      networks:
+      mired:
+        aliases:
+          - documentos.universidad.localhost
+      environment:
+        - REDIS_HOST=$(REDIS_HOST)
+        - REDIS_PORT=$(REDIS_PORT)
+        - REDIS_PASSWORD=$(REDIS_PASSWORD)
+        - ACADEMICA_HOST=$(ACADEMICA_HOST)
+        - ALUMNOS_HOST=$(ALUMNOS_HOST)
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.documentos-service.rule=Host(`documentos.universidad.localhost`)"
+        - "traefik.http.routers.documentos-service.tls=true"
+        - "traefik.http.services.documentos-service.loadbalancer.server.port=5000"
+        #Patron Circuit Breaker
+        - "traefik.http.middlewares.documentos-service.circuitbreaker.expression=LatencyAtQuantileMS(50.0) > 100"
+        - "traefik.http.middlewares.documentos-service.circuitbreaker.expression=ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+        - "traefik.http.middlewares.documentos-service.circuitbreaker.expression=networkErrorRatio() > 0.5"
+        - "traefik.http.middlewares.documentos-service.retry.attempts=4"
+        - "traefik.http.middlewares.documentos-service.retry.initialinterval=100ms"
+        -  "traefik.docker.network=mired"
