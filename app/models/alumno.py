@@ -1,6 +1,4 @@
 from dataclasses import dataclass
-
-
 from app.models import TipoDocumento,Especialidad
 
 @dataclass(init=False, repr=True, eq=True)

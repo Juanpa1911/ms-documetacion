@@ -15,13 +15,22 @@ class Config(object):
     REDIS_DB = int(os.getenv('REDIS_DB', 0))
     REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', None)
     
-    # Microservices URLs
-    ALUMNO_SERVICE_URL = os.getenv('ALUMNO_SERVICE_URL', 'http://localhost:5001/api/v1')
-    ESPECIALIDAD_SERVICE_URL = os.getenv('ESPECIALIDAD_SERVICE_URL', 'http://localhost:5002/api/v1')
+    # Microservices URLs (soporta variables del docker-compose)
+    # Prioriza ALUMNOS_HOST y ACADEMICA_HOST del docker-compose del profesor
+    ALUMNO_SERVICE_URL = os.getenv('ALUMNOS_HOST') or os.getenv('ALUMNO_SERVICE_URL', 'http://localhost:5001/api/v1')
+    ESPECIALIDAD_SERVICE_URL = os.getenv('ACADEMICA_HOST') or os.getenv('ESPECIALIDAD_SERVICE_URL', 'http://localhost:5002/api/v1')
     
     # Cache TTL (Time To Live) en segundos
     CACHE_ALUMNO_TTL = int(os.getenv('CACHE_ALUMNO_TTL', 300))  # 5 minutos
     CACHE_ESPECIALIDAD_TTL = int(os.getenv('CACHE_ESPECIALIDAD_TTL', 600))  # 10 minutos
+    
+    # Configuración de Retry (complementa el retry de Traefik)
+    MAX_RETRY_ATTEMPTS = int(os.getenv('MAX_RETRY_ATTEMPTS', 3))
+    RETRY_WAIT_MIN = int(os.getenv('RETRY_WAIT_MIN', 1))  # segundos
+    RETRY_WAIT_MAX = int(os.getenv('RETRY_WAIT_MAX', 10))  # segundos
+    
+    # HTTP Request Configuration
+    REQUEST_TIMEOUT = int(os.getenv('REQUEST_TIMEOUT', 10))  # segundos
     
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
 
