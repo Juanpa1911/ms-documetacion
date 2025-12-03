@@ -280,6 +280,7 @@ dependencies = [
     { name = "pyrefly" },
     { name = "python-dotenv" },
     { name = "python-odt-template" },
+    { name = "redis" },
     { name = "requests" },
     { name = "weasyprint" },
 ]
@@ -292,6 +293,7 @@ requires-dist = [
     { name = "pyrefly", specifier = "==0.38.2" },
     { name = "python-dotenv", specifier = "==1.1.1" },
     { name = "python-odt-template", specifier = "==0.5.1" },
+    { name = "redis", specifier = "==4.5.5" },
     { name = "requests", specifier = "==2.32.5" },
     { name = "weasyprint", specifier = "==65.1" },
 ]
@@ -687,6 +689,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/72/8c/7f4db38a1fd3a4736b574c3ca56b9cc5c1b20cb477f54e73b20ae2a82795/python_odt_template-0.5.1.tar.gz", hash = "sha256:4da7835f5b9a6dc8a79a77415c369e654ed623cba9af79972e0503388e0fff18", size = 272125, upload-time = "2024-06-27T16:19:15.114Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f0/83/978d94295edc6ce0949b54b75849c1542a3c06627cc5ec9b9c878af0afb5/python_odt_template-0.5.1-py3-none-any.whl", hash = "sha256:77c8808996f9931c3ae333b609122acdb0931741d4ba72c75e8b2d2c6aa1caab", size = 16919, upload-time = "2024-06-27T16:19:17.177Z" },
+]
+
+[[package]]
+name = "redis"
+version = "4.5.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/53/30/128c5599bc3fa61488866be0228326b3e486be34480126f70e572043adf8/redis-4.5.5.tar.gz", hash = "sha256:dc87a0bdef6c8bfe1ef1e1c40be7034390c2ae02d92dcd0c7ca1729443899880", size = 4557115, upload-time = "2023-05-08T12:04:07.179Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e0/7f/21a09f8c9f5db6f5e24432f7a0f916ca386025d74e4da6d0f5164aa9a78a/redis-4.5.5-py3-none-any.whl", hash = "sha256:77929bc7f5dab9adf3acba2d3bb7d7658f1e0c2f1cafe7eb36434e751c471119", size = 240338, upload-time = "2023-05-08T12:04:05.568Z" },
 ]
 
 [[package]]
