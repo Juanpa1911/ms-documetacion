@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from app.models import TipoDocumento,Especialidad
+from app.models.tipodocumento import TipoDocumento
+from app.models.especialidad import Especialidad
 
 @dataclass(init=False, repr=True, eq=True)
 class Alumno():

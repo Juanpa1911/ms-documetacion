@@ -24,11 +24,6 @@ class Config(object):
     CACHE_ALUMNO_TTL = int(os.getenv('CACHE_ALUMNO_TTL', 300))  # 5 minutos
     CACHE_ESPECIALIDAD_TTL = int(os.getenv('CACHE_ESPECIALIDAD_TTL', 600))  # 10 minutos
     
-    # Configuración de Retry (complementa el retry de Traefik)
-    MAX_RETRY_ATTEMPTS = int(os.getenv('MAX_RETRY_ATTEMPTS', 3))
-    RETRY_WAIT_MIN = int(os.getenv('RETRY_WAIT_MIN', 1))  # segundos
-    RETRY_WAIT_MAX = int(os.getenv('RETRY_WAIT_MAX', 10))  # segundos
-    
     # HTTP Request Configuration
     REQUEST_TIMEOUT = int(os.getenv('REQUEST_TIMEOUT', 10))  # segundos
     

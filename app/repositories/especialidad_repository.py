@@ -24,7 +24,6 @@ class EspecialidadRepository:
         """Obtiene la especialidad desde el microservicio externo"""
         url = f"{current_app.config['ESPECIALIDAD_SERVICE_URL']}/especialidades/{especialidad_id}"
         timeout = current_app.config['REQUEST_TIMEOUT']
-        
         response = requests.get(url, timeout=timeout)
         response.raise_for_status()
         return response.json()

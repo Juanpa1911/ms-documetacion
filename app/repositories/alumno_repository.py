@@ -24,7 +24,6 @@ class AlumnoRepository:
         """Obtiene el alumno desde el microservicio externo"""
         url = f"{current_app.config['ALUMNO_SERVICE_URL']}/alumnos/{alumno_id}"
         timeout = current_app.config['REQUEST_TIMEOUT']
-        
         response = requests.get(url, timeout=timeout)
         response.raise_for_status()
         return response.json()
