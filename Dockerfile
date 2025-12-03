@@ -1,4 +1,4 @@
-FROM python:3.14-slim
+FROM python:3.13.7-slim
 
 ENV FLASK_CONTEXT=production
 ENV PYTHONDONTWRITEBYTECODE=1

@@ -4,7 +4,7 @@ services:
       deploy:
         replicas: 2
       networks:
-      mired:
+      carlosred:
         aliases:
           - documentos.universidad.localhost
       environment:
@@ -24,4 +24,7 @@ services:
         - "traefik.http.middlewares.documentos-service.circuitbreaker.expression=networkErrorRatio() > 0.5"
         - "traefik.http.middlewares.documentos-service.retry.attempts=4"
         - "traefik.http.middlewares.documentos-service.retry.initialinterval=100ms"
-        -  "traefik.docker.network=mired"
+        -  "traefik.docker.network=carlosred"
+networks:
+    carlosred: #Cambien todas las referencias a "carlosred" por el nombre de su red"
+      external: true
