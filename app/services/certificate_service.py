@@ -5,29 +5,40 @@ from io import BytesIO
 from app.mapping import AlumnoMapping
 from app.models import Alumno
 from app.services.documentos_office_service import obtener_tipo_documento
+from app.exceptions import AlumnoNotFoundException, DocumentGenerationException
 
 class CertificateService:
     @staticmethod
     def generar_certificado_alumno_regular(id: int, tipo: str) -> BytesIO:
-        alumno = CertificateService._buscar_alumno_por_id(id)
-        if not alumno:
-            return None
-        
-        context = CertificateService._obtener_contexto_alumno(alumno)
-        documento = obtener_tipo_documento(tipo)
-        if not documento:
-            return None
+        try:
+            alumno = CertificateService._buscar_alumno_por_id(id)
             
-        if tipo in ('odt', 'docx'):
-            plantilla = 'certificado_plantilla'
-        else:
-            plantilla = 'certificado_pdf'
+            context = CertificateService._obtener_contexto_alumno(alumno)
+            documento = obtener_tipo_documento(tipo)
+            if not documento:
+                raise DocumentGenerationException(f'Tipo de documento no soportado: {tipo}')
+                
+            if tipo in ('odt', 'docx'):
+                plantilla = 'certificado_plantilla'
+            else:
+                plantilla = 'certificado_pdf'
 
-        return documento.generar(
-            carpeta='certificado',
-            plantilla=plantilla,
-            context=context
-        )
+            resultado = documento.generar(
+                carpeta='certificado',
+                plantilla=plantilla,
+                context=context
+            )
+            
+            if not resultado:
+                raise DocumentGenerationException('Error al generar el documento')
+            
+            return resultado
+        except (AlumnoNotFoundException, DocumentGenerationException):
+            # Re-lanzar excepciones personalizadas
+            raise
+        except Exception as e:
+            # Convertir excepciones inesperadas en DocumentGenerationException
+            raise DocumentGenerationException(f'Error inesperado al generar certificado: {str(e)}')
     
     @staticmethod
     def _obtener_contexto_alumno(alumno: Alumno) -> dict:
@@ -59,6 +70,8 @@ class CertificateService:
     
     @staticmethod
     def _buscar_alumno_por_id(id: int) -> Alumno:
+        from app.exceptions import ServiceUnavailableException
+        
         # Usar mock data mientras no existe el microservicio de alumnos
         USE_MOCK = os.getenv('USE_MOCK_DATA', 'true').lower() == 'true'
         
@@ -70,13 +83,19 @@ class CertificateService:
         alumno_mapping = AlumnoMapping()
         try:
             r = requests.get(f'{URL_ALUMNOS}/api/v1/alumnos/{id}', timeout=5)
-            if r.status_code == 200:
-                result = alumno_mapping.load(r.json())  
-            else:
-                raise Exception(f'Error al obtener el alumno con id {id}: {r.status_code}')
+            if r.status_code == 404:
+                raise AlumnoNotFoundException(id)
+            elif r.status_code != 200:
+                raise ServiceUnavailableException('alumnos', f'Status code: {r.status_code}')
+            
+            result = alumno_mapping.load(r.json())
             return result
+        except requests.exceptions.Timeout:
+            raise ServiceUnavailableException('alumnos', 'Timeout al conectar')
+        except requests.exceptions.ConnectionError:
+            raise ServiceUnavailableException('alumnos', 'Error de conexión')
         except requests.exceptions.RequestException as e:
-            raise Exception(f'Error de conexión con el servicio de alumnos: {str(e)}')
+            raise ServiceUnavailableException('alumnos', str(e))
     
     @staticmethod
     def _get_mock_alumno(id: int) -> Alumno:

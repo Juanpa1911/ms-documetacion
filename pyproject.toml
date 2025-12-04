@@ -10,6 +10,8 @@ dependencies = [
     "granian>=1.0.0",
     "marshmallow==4.0.1",
     "pyrefly==0.38.2",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
     "python-dotenv==1.1.1",
     "python-odt-template==0.5.1",
     "requests==2.32.5",

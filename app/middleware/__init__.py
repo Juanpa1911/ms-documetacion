@@ -1,0 +1,3 @@
+
+from app.middleware.logging_middleware import register_logging_middleware
+from app.middleware.error_middleware import register_error_middleware

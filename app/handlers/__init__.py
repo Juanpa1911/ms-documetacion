@@ -1,0 +1,1 @@
+from app.handlers.error_handlers import register_error_handlers
