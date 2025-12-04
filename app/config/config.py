@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import logging
 
+
 basedir = os.path.abspath(Path(__file__).parents[2])
 load_dotenv(os.path.join(basedir, '.env'))
 

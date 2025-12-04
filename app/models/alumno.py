@@ -9,5 +9,6 @@ class Alumno():
     nombre:str 
     apellido:str 
     nrodocumento: str
+    legajo: str
     tipo_documento :TipoDocumento
     especialidad :Especialidad
