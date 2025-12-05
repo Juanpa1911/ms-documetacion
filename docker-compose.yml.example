@@ -1,0 +1,41 @@
+services:
+  documentos-service:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      image: gestion-documentos:v1.0.1
+      deploy:
+        replicas: 2
+      networks:
+        carlosred:
+          aliases:
+            - documentos.universidad.localhost
+      environment:
+        - REDIS_HOST=${REDIS_HOST}
+        - REDIS_PORT=${REDIS_PORT}
+        - REDIS_PASSWORD=${REDIS_PASSWORD}
+        - ACADEMICA_HOST=${ACADEMICA_HOST}
+        - ALUMNOS_HOST=${ALUMNOS_HOST}
+        - FLASK_CONTEXT=${FLASK_CONTEXT:-production}
+        #TODO: recordar quitar las cosas relacionas a mock  
+        - USE_MOCK_DATA=${USE_MOCK_DATA:-true}
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.documentos-service.rule=Host(`documentos.universidad.localhost`)"
+        - "traefik.http.routers.documentos-service.tls=true"
+        - "traefik.http.routers.documentos-service.middlewares=documentos-service-ratelimit"
+        - "traefik.http.services.documentos-service.loadbalancer.server.port=5000"
+        #Patron Circuit Breaker
+        - "traefik.http.middlewares.documentos-service.circuitbreaker.expression=LatencyAtQuantileMS(50.0) > 100"
+        - "traefik.http.middlewares.documentos-service.circuitbreaker.expression=ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+        - "traefik.http.middlewares.documentos-service.circuitbreaker.expression=networkErrorRatio() > 0.5"
+        - "traefik.http.middlewares.documentos-service.retry.attempts=4"
+        - "traefik.http.middlewares.documentos-service.retry.initialinterval=100ms"
+        #Patron Rate Limit
+        - "traefik.http.middlewares.documentos-service-ratelimit.ratelimit.average=100"
+        - "traefik.http.middlewares.documentos-service-ratelimit.ratelimit.burst=50"
+        - "traefik.http.middlewares.documentos-service-ratelimit.ratelimit.period=1s"
+        -  "traefik.docker.network=carlosred"
+networks:
+    carlosred: #Cambien todas las referencias a "carlosred" por el nombre de su red"
+      external: true
