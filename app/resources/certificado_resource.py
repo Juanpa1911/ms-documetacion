@@ -7,20 +7,12 @@ logger = logging.getLogger(__name__)
 certificado_bp = Blueprint('certificado', __name__)
 
 
-def _validar_id_alumno(alumno_id: int) -> None:
-    """Valida que el ID del alumno sea válido (mayor a 0)"""
-    if alumno_id <= 0:
-        logger.warning(f"ID de alumno inválido: {alumno_id}")
-        raise DocumentGenerationException(
-            f"El ID del alumno debe ser un número positivo. Recibido: {alumno_id}"
-        )
-
 
 @certificado_bp.route('/certificado/<int:id>/pdf', methods=['GET'])
 def certificado_en_pdf(id: int):
     """Genera certificado de alumno regular en formato PDF"""
     try:
-        _validar_id_alumno(id)
+        validar_id_alumno(id)
         logger.info(f"Generando certificado PDF para alumno ID: {id}")
         pdf_io = AlumnoService.generar_certificado_alumno_regular(id, 'pdf')
         return send_file(pdf_io, mimetype='application/pdf', as_attachment=False)

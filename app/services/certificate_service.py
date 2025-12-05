@@ -3,7 +3,7 @@ import os
 import requests
 import logging
 from io import BytesIO
-from app.validators import validate_with
+from app.validators import validar_datos_alumno, validar_contexto, validar_id_alumno
 from app.mapping import AlumnoMapping
 from app.models import Alumno
 from app.services.documentos_office_service import obtener_tipo_documento
@@ -20,16 +20,18 @@ class CertificateService:
         logger.info(f'Iniciando generación de certificado para alumno {id} en formato {tipo}')
         
         try:
+            if not validar_id_alumno(id):
+                logger.warning(f"ID de alumno inválido: {id}")
+                raise DocumentGenerationException(
+                    f"El ID del alumno debe ser un número positivo. Recibido: {id}"
+                )
+
             logger.debug(f'Buscando alumno con ID {id}')
             alumno = CertificateService._buscar_alumno_por_id(id)
             logger.debug(f'Alumno encontrado: {alumno.nombre} {alumno.apellido}')
             
             logger.debug('Validando datos del alumno')
-
-            validated = validate_with(AlumnoMapping, context=alumno)
-
-            # Si la validación falla, validated será una tupla (jsonify, 400)
-            if isinstance(validated, tuple):
+            if not validar_datos_alumno(alumno):
                 logger.error(f'Datos incompletos para alumno {id}')
                 raise DocumentGenerationException(
                     f'El alumno {id} tiene datos incompletos. '
@@ -41,7 +43,7 @@ class CertificateService:
             context = CertificateService._obtener_contexto_alumno(alumno)
 
             logger.debug('Validando contexto completo')
-            if not CertificateService._validar_contexto(context):
+            if not validar_contexto(context):
                 logger.error('Contexto incompleto para generar documento')
                 raise DocumentGenerationException(
                     'El contexto para generar el documento está incompleto. '
@@ -99,36 +101,6 @@ class CertificateService:
             "fecha": CertificateService._obtener_fechaactual()
         }
     
-    @staticmethod
-    def _validar_contexto(context: dict) -> bool:
-
-        # Lista de claves que DEBEN existir en el contexto
-        claves_requeridas = ['alumno', 'especialidad', 'facultad', 'universidad', 'fecha']
-        
-        # all() retorna True solo si TODAS las condiciones son True
-        # Verifica que cada clave requerida esté presente en el context
-        return all(clave in context for clave in claves_requeridas)
-    
-    @staticmethod
-    def _validar_datos_alumno(alumno: Alumno) -> bool:
-
-        # Primero verificar que el alumno no sea None
-        if not alumno:
-            return False
-        
-        # Lista de campos que DEBEN tener valor (no None)
-        campos_requeridos = [
-            alumno.nombre,
-            alumno.apellido,
-            alumno.nrodocumento,
-            alumno.legajo,
-            alumno.tipo_documento,
-            alumno.especialidad
-        ]
-        
-        # all() retorna True solo si TODOS los valores son "truthy" (no None, no vacío)
-        # Si alguno es None, retorna False
-        return all(campo is not None for campo in campos_requeridos)
     
     @staticmethod
     def _obtener_fechaactual():

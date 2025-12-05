@@ -4,7 +4,7 @@ import os
 import logging
 from flask import current_app, render_template
 from python_odt_template import ODTTemplate
-from weasyprint import HTML
+#from weasyprint import HTML
 from python_odt_template.jinja import get_odt_renderer
 from docxtpl import DocxTemplate
 import jinja2
@@ -84,6 +84,17 @@ class PDFDocument(Document):
         html_string = render_template(f"{carpeta}/{plantilla}.html", **render_context)
         
         logger.debug('Convirtiendo HTML a PDF con WeasyPrint')
+        # Lazy import: solo importar WeasyPrint cuando realmente se necesita
+        # Esto evita problemas en tests y cuando las librerías GTK no están disponibles
+        try:
+            from weasyprint import HTML
+        except (OSError, ImportError) as e:
+            logger.error(f"Error al importar WeasyPrint: {e}")
+            raise ImportError(
+                "WeasyPrint no está disponible. Asegúrese de que GTK esté instalado correctamente. "
+                "En Windows, puede instalar GTK desde https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer"
+            ) from e
+        
         bytes_data = HTML(string=html_string, base_url=base_url).write_pdf()
         pdf_io = BytesIO(bytes_data)
         
