@@ -6,6 +6,7 @@ from flask import current_app
 from app.repositories.redis_client import RedisClient
 from app.mapping import AlumnoMapping
 from app.models import Alumno
+from app.utils import retry
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +21,9 @@ class AlumnoRepository:
         """Genera la clave de cache para un alumno"""
         return f"alumno:{alumno_id}"
     
+    @retry(max_attempts=3, delay=0.5, backoff=2.0, exceptions=(requests.RequestException,))
     def _fetch_from_service(self, alumno_id: int) -> dict:
-        """Obtiene el alumno desde el microservicio externo"""
+        """Obtiene el alumno desde el microservicio externo con retry automático"""
         url = f"{current_app.config['ALUMNO_SERVICE_URL']}/alumnos/{alumno_id}"
         timeout = current_app.config['REQUEST_TIMEOUT']
         response = requests.get(url, timeout=timeout)

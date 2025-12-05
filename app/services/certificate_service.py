@@ -3,7 +3,7 @@ import os
 import requests
 import logging
 from io import BytesIO
-from validators import validate_with
+from app.validators import validate_with
 from app.mapping import AlumnoMapping
 from app.models import Alumno
 from app.services.documentos_office_service import obtener_tipo_documento

@@ -6,6 +6,7 @@ from flask import current_app
 from app.repositories.redis_client import RedisClient
 from app.mapping import EspecialidadMapping
 from app.models import Especialidad
+from app.utils import retry
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +21,9 @@ class EspecialidadRepository:
         """Genera la clave de cache para una especialidad"""
         return f"especialidad:{especialidad_id}"
     
+    @retry(max_attempts=3, delay=0.5, backoff=2.0, exceptions=(requests.RequestException,))
     def _fetch_from_service(self, especialidad_id: int) -> dict:
-        """Obtiene la especialidad desde el microservicio externo"""
+        """Obtiene la especialidad desde el microservicio externo con retry automático"""
         url = f"{current_app.config['ESPECIALIDAD_SERVICE_URL']}/especialidades/{especialidad_id}"
         timeout = current_app.config['REQUEST_TIMEOUT']
         response = requests.get(url, timeout=timeout)
