@@ -8,6 +8,17 @@ logger = logging.getLogger(__name__)
 
 def register_error_handlers(app: Flask) -> None:
     
+    @app.errorhandler(404)
+    def handle_not_found(error):
+        """Handler específico para 404 - retorna JSON en lugar de HTML"""
+        response = {
+            "error": "NotFound",
+            "message": "El recurso solicitado no existe. Verifica la URL e ID proporcionados.",
+            "status": 404
+        }
+        logger.warning(f"404 Not Found: {error}")
+        return jsonify(response), 404
+    
     @app.errorhandler(BaseAppException)
     def handle_app_exception(error: BaseAppException):
         logger.error(f"{error.error_code}: {error.message}")
