@@ -1,4 +1,4 @@
-import pytest
+import unittest
 from app.exceptions.custom_exceptions import (
     BaseAppException,
     AlumnoNotFoundException,
@@ -9,62 +9,62 @@ from app.exceptions.custom_exceptions import (
 )
 
 
-class TestBaseAppException:
+class TestBaseAppException(unittest.TestCase):
     def test_base_exception_creation(self):
         """Test: Crear excepción base con mensaje"""
         exc = BaseAppException("Test error")
-        assert str(exc) == "Test error"
-        assert exc.status_code == 500
-        assert exc.error_code == "InternalServerError"
+        self.assertEqual(str(exc), "Test error")
+        self.assertEqual(exc.status_code, 500)
+        self.assertEqual(exc.error_code, "InternalServerError")
     
     def test_base_exception_custom_status(self):
         exc = BaseAppException("Test", status_code=400)
-        assert exc.status_code == 400
+        self.assertEqual(exc.status_code, 400)
     
     def test_base_exception_to_dict(self):
         exc = BaseAppException("Test error", status_code=400)
         result = exc.to_dict()
         
-        assert result["error"] == "InternalServerError"
-        assert result["message"] == "Test error"
-        assert result["status"] == 400
+        self.assertEqual(result["error"], "InternalServerError")
+        self.assertEqual(result["message"], "Test error")
+        self.assertEqual(result["status"], 400)
 
 
-class TestAlumnoNotFoundException:
+class TestAlumnoNotFoundException(unittest.TestCase):
     def test_alumno_not_found_creation(self):
         exc = AlumnoNotFoundException(alumno_id=123)
         
-        assert exc.status_code == 404
-        assert exc.error_code == "AlumnoNotFound"
-        assert "123" in str(exc)
+        self.assertEqual(exc.status_code, 404)
+        self.assertEqual(exc.error_code, "AlumnoNotFound")
+        self.assertIn("123", str(exc))
     
     def test_alumno_not_found_to_dict(self):
         exc = AlumnoNotFoundException(alumno_id=456)
         result = exc.to_dict()
         
-        assert result["error"] == "AlumnoNotFound"
-        assert result["status"] == 404
-        assert "alumno_id" in result
+        self.assertEqual(result["error"], "AlumnoNotFound")
+        self.assertEqual(result["status"], 404)
+        self.assertIn("alumno_id", result)
 
 
-class TestEspecialidadNotFoundException:
+class TestEspecialidadNotFoundException(unittest.TestCase):
     def test_especialidad_not_found_creation(self):
         """Test: Crear excepción de especialidad no encontrada"""
         exc = EspecialidadNotFoundException(especialidad_id=789)
         
-        assert exc.status_code == 404
-        assert exc.error_code == "EspecialidadNotFound"
-        assert "789" in str(exc)
+        self.assertEqual(exc.status_code, 404)
+        self.assertEqual(exc.error_code, "EspecialidadNotFound")
+        self.assertIn("789", str(exc))
 
 
-class TestServiceUnavailableException:
+class TestServiceUnavailableException(unittest.TestCase):
     def test_service_unavailable_creation(self):
         """Test: Crear excepción de servicio no disponible"""
         exc = ServiceUnavailableException(service_name="alumno-service")
         
-        assert exc.status_code == 503
-        assert exc.error_code == "ServiceUnavailable"
-        assert "alumno-service" in str(exc)
+        self.assertEqual(exc.status_code, 503)
+        self.assertEqual(exc.error_code, "ServiceUnavailable")
+        self.assertIn("alumno-service", str(exc))
     
     def test_service_unavailable_with_reason(self):
         exc = ServiceUnavailableException(
@@ -73,21 +73,21 @@ class TestServiceUnavailableException:
         )
         
         result = exc.to_dict()
-        assert "Connection timeout" in result["message"]
+        self.assertIn("Connection timeout", result["message"])
 
 
-class TestCacheException:
+class TestCacheException(unittest.TestCase):
     
     def test_cache_exception_creation(self):
         exc = CacheException(operation="set", key="alumno:123")
         
-        assert exc.status_code == 500
-        assert exc.error_code == "CacheError"
-        assert "set" in str(exc)
-        assert "alumno:123" in str(exc)
+        self.assertEqual(exc.status_code, 500)
+        self.assertEqual(exc.error_code, "CacheError")
+        self.assertIn("set", str(exc))
+        self.assertIn("alumno:123", str(exc))
 
 
-class TestDocumentGenerationException:
+class TestDocumentGenerationException(unittest.TestCase):
     
     def test_document_generation_creation(self):
         exc = DocumentGenerationException(
@@ -95,10 +95,10 @@ class TestDocumentGenerationException:
             reason="Template not found"
         )
         
-        assert exc.status_code == 500
-        assert exc.error_code == "DocumentGenerationError"
-        assert "pdf" in str(exc)
-        assert "Template not found" in str(exc)
+        self.assertEqual(exc.status_code, 500)
+        self.assertEqual(exc.error_code, "DocumentGenerationError")
+        self.assertIn("pdf", str(exc))
+        self.assertIn("Template not found", str(exc))
     
     def test_document_generation_to_dict(self):
         exc = DocumentGenerationException(
@@ -107,8 +107,12 @@ class TestDocumentGenerationException:
         )
         
         result = exc.to_dict()
-        assert "document_type" in result
-        assert result["document_type"] == "docx"
+        self.assertIn("document_type", result)
+        self.assertEqual(result["document_type"], "docx")
+
+
+if __name__ == '__main__':
+    unittest.main()
 
             
             
