@@ -1,28 +1,62 @@
 import datetime
 import os
 import requests
+import logging
 from io import BytesIO
 from app.mapping import AlumnoMapping
 from app.models import Alumno
 from app.services.documentos_office_service import obtener_tipo_documento
 from app.exceptions import AlumnoNotFoundException, DocumentGenerationException
 
+# Configurar logger para este módulo
+logger = logging.getLogger(__name__)
+
 class CertificateService:
     @staticmethod
     def generar_certificado_alumno_regular(id: int, tipo: str) -> BytesIO:
+
+
+        logger.info(f'Iniciando generación de certificado para alumno {id} en formato {tipo}')
+        
         try:
+            logger.debug(f'Buscando alumno con ID {id}')
             alumno = CertificateService._buscar_alumno_por_id(id)
+            logger.debug(f'Alumno encontrado: {alumno.nombre} {alumno.apellido}')
             
+            logger.debug('Validando datos del alumno')
+            if not CertificateService._validar_datos_alumno(alumno):
+                logger.error(f'Datos incompletos para alumno {id}')
+                raise DocumentGenerationException(
+                    f'El alumno {id} tiene datos incompletos. '
+                    'Verifique que tenga nombre, apellido, documento, legajo, '
+                    'tipo de documento y especialidad.'
+                )
+            
+            logger.debug('Construyendo contexto con datos del alumno y relaciones')
             context = CertificateService._obtener_contexto_alumno(alumno)
+            
+            logger.debug('Validando contexto completo')
+            if not CertificateService._validar_contexto(context):
+                logger.error('Contexto incompleto para generar documento')
+                raise DocumentGenerationException(
+                    'El contexto para generar el documento está incompleto. '
+                    'Faltan datos de alumno, especialidad, facultad, universidad o fecha.'
+                )
+            
+            logger.debug(f'Obteniendo generador para tipo: {tipo}')
             documento = obtener_tipo_documento(tipo)
             if not documento:
+                logger.error(f'Tipo de documento no soportado: {tipo}')
                 raise DocumentGenerationException(f'Tipo de documento no soportado: {tipo}')
-                
+            
             if tipo in ('odt', 'docx'):
                 plantilla = 'certificado_plantilla'
             else:
                 plantilla = 'certificado_pdf'
-
+            
+            logger.debug(f'Usando plantilla: {plantilla}')
+            
+            logger.info(f'Generando documento {tipo} con plantilla {plantilla}')
             resultado = documento.generar(
                 carpeta='certificado',
                 plantilla=plantilla,
@@ -30,16 +64,23 @@ class CertificateService:
             )
             
             if not resultado:
+                logger.error('El generador retornó None')
                 raise DocumentGenerationException('Error al generar el documento')
             
+            logger.info(f'Certificado generado exitosamente para alumno {id}')
             return resultado
+
+            
         except (AlumnoNotFoundException, DocumentGenerationException):
-            # Re-lanzar excepciones personalizadas
+            # Re-lanzar excepciones personalizadas sin modificar
+            logger.error(f'Error controlado al generar certificado: {str(e)}')
             raise
         except Exception as e:
             # Convertir excepciones inesperadas en DocumentGenerationException
-            raise DocumentGenerationException(f'Error inesperado al generar certificado: {str(e)}')
-    
+            logger.exception(f'Error inesperado al generar certificado para alumno {id}: {str(e)}')
+            raise DocumentGenerationException(f'Error inesperado al generar certificado: {str(e)}')    
+
+         
     @staticmethod
     def _obtener_contexto_alumno(alumno: Alumno) -> dict:
         especialidad = alumno.especialidad
@@ -52,6 +93,37 @@ class CertificateService:
             "universidad": universidad,
             "fecha": CertificateService._obtener_fechaactual()
         }
+    
+    @staticmethod
+    def _validar_contexto(context: dict) -> bool:
+
+        # Lista de claves que DEBEN existir en el contexto
+        claves_requeridas = ['alumno', 'especialidad', 'facultad', 'universidad', 'fecha']
+        
+        # all() retorna True solo si TODAS las condiciones son True
+        # Verifica que cada clave requerida esté presente en el context
+        return all(clave in context for clave in claves_requeridas)
+    
+    @staticmethod
+    def _validar_datos_alumno(alumno: Alumno) -> bool:
+
+        # Primero verificar que el alumno no sea None
+        if not alumno:
+            return False
+        
+        # Lista de campos que DEBEN tener valor (no None)
+        campos_requeridos = [
+            alumno.nombre,
+            alumno.apellido,
+            alumno.nrodocumento,
+            alumno.legajo,
+            alumno.tipo_documento,
+            alumno.especialidad
+        ]
+        
+        # all() retorna True solo si TODOS los valores son "truthy" (no None, no vacío)
+        # Si alguno es None, retorna False
+        return all(campo is not None for campo in campos_requeridos)
     
     @staticmethod
     def _obtener_fechaactual():
