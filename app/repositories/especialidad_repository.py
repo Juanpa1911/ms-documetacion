@@ -31,25 +31,47 @@ class EspecialidadRepository:
         return response.json()
     
     def get_especialidad_by_id(self, especialidad_id: int) -> Optional[Especialidad]:
-        """Obtiene una especialidad por ID usando cache Redis"""
+        """
+        Obtiene una especialidad por ID usando cache Redis.
+        
+        Flujo:
+        1. Busca en Redis cache
+        2. Si no está (cache miss), llama al MS académica
+        3. Guarda en cache con TTL
+        4. Retorna especialidad deserializada
+        
+        Args:
+            especialidad_id: ID de la especialidad a buscar
+            
+        Returns:
+            Especialidad o None si no existe (404)
+            
+        Raises:
+            ServiceUnavailableException: Si el MS académica no responde
+        """
+        from app.exceptions import EspecialidadNotFoundException, ServiceUnavailableException
+        
         cache_key = self._get_cache_key(especialidad_id)
         
         # Intentar obtener del cache
         cached_data = self.redis_client.get(cache_key)
         if cached_data:
+            logger.debug(f"Cache HIT para especialidad {especialidad_id}")
             try:
                 return self.especialidad_mapping.load(cached_data)
             except Exception as e:
                 logger.error(f"Error al deserializar especialidad desde cache: {e}")
                 self.redis_client.delete(cache_key)
         
-        # Consultar servicio
+        # Cache miss - consultar servicio
+        logger.debug(f"Cache MISS para especialidad {especialidad_id}")
         try:
             especialidad_data = self._fetch_from_service(especialidad_id)
             
             # Guardar en cache
             ttl = current_app.config['CACHE_ESPECIALIDAD_TTL']
             self.redis_client.set(cache_key, especialidad_data, ttl)
+            logger.debug(f"Especialidad {especialidad_id} guardada en cache (TTL={ttl}s)")
             
             return self.especialidad_mapping.load(especialidad_data)
             

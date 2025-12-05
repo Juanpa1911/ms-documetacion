@@ -1,13 +1,13 @@
 import datetime
 import os
-import requests
 import logging
 from io import BytesIO
 from app.validators import validar_datos_alumno, validar_contexto, validar_id_alumno
-from app.mapping import AlumnoMapping
 from app.models import Alumno
 from app.services.documentos_office_service import obtener_tipo_documento
-from app.exceptions import AlumnoNotFoundException, DocumentGenerationException
+from app.exceptions import AlumnoNotFoundException, EspecialidadNotFoundException, DocumentGenerationException, ServiceUnavailableException
+from app.repositories.alumno_repository import AlumnoRepository
+from app.repositories.especialidad_repository import EspecialidadRepository
 
 # Configurar logger para este módulo
 logger = logging.getLogger(__name__)
@@ -25,10 +25,15 @@ class CertificateService:
             alumno = CertificateService._buscar_alumno_por_id(id)
             logger.debug(f'Alumno encontrado: {alumno.nombre} {alumno.apellido}')
             
+            # Enriquecer especialidad si solo tiene ID (llamar a MS académica)
+            logger.debug('Verificando y enriqueciendo datos de especialidad')
+            alumno = CertificateService._enriquecer_especialidad(alumno)
+            
             logger.debug('Validando datos del alumno')
             if not validar_datos_alumno(alumno):
                 logger.error(f'Datos incompletos para alumno {id}')
                 raise DocumentGenerationException(
+                    tipo,
                     f'El alumno {id} tiene datos incompletos. '
                     'Verifique que tenga nombre, apellido, documento, legajo, '
                     'tipo de documento y especialidad.'
@@ -41,6 +46,7 @@ class CertificateService:
             if not validar_contexto(context):
                 logger.error('Contexto incompleto para generar documento')
                 raise DocumentGenerationException(
+                    tipo,
                     'El contexto para generar el documento está incompleto. '
                     'Faltan datos de alumno, especialidad, facultad, universidad o fecha.'
                 )
@@ -49,7 +55,7 @@ class CertificateService:
             documento = obtener_tipo_documento(tipo)
             if not documento:
                 logger.error(f'Tipo de documento no soportado: {tipo}')
-                raise DocumentGenerationException(f'Tipo de documento no soportado: {tipo}')
+                raise DocumentGenerationException(tipo, f'Tipo de documento no soportado: {tipo}')
             
             if tipo in ('odt', 'docx'):
                 plantilla = 'certificado_plantilla'
@@ -67,7 +73,7 @@ class CertificateService:
             
             if not resultado:
                 logger.error('El generador retornó None')
-                raise DocumentGenerationException('Error al generar el documento')
+                raise DocumentGenerationException(tipo, 'Error al generar el documento')
             
             logger.info(f'Certificado generado exitosamente para alumno {id}')
             return resultado
@@ -80,7 +86,7 @@ class CertificateService:
         except Exception as e:
             # Convertir excepciones inesperadas en DocumentGenerationException
             logger.exception(f'Error inesperado al generar certificado para alumno {id}: {str(e)}')
-            raise DocumentGenerationException(f'Error inesperado al generar certificado: {str(e)}')    
+            raise DocumentGenerationException(tipo, f'Error inesperado al generar certificado: {str(e)}')    
 
          
     @staticmethod
@@ -114,32 +120,127 @@ class CertificateService:
     
     @staticmethod
     def _buscar_alumno_por_id(id: int) -> Alumno:
-        from app.exceptions import ServiceUnavailableException
+        """
+        Busca alumno por ID usando repositorio con cache Redis.
         
+        Implementa patrón Repository para:
+        1. Buscar en cache Redis primero (cache hit = respuesta instantánea)
+        2. Si no está en cache, llamar al microservicio de alumnos
+        3. Guardar resultado en cache con TTL
+        4. Retry automático en caso de fallo (implementado en el repositorio)
+        
+        Args:
+            id: ID del alumno a buscar
+            
+        Returns:
+            Alumno: Objeto con datos completos del alumno
+            
+        Raises:
+            AlumnoNotFoundException: Si el alumno no existe (404)
+            ServiceUnavailableException: Si el MS de alumnos no responde
+        """
         # Usar mock data mientras no existe el microservicio de alumnos
         USE_MOCK = os.getenv('USE_MOCK_DATA', 'true').lower() == 'true'
         
         if USE_MOCK:
+            logger.debug(f'Usando datos mock para alumno {id}')
             return CertificateService._get_mock_alumno(id)
         
-        # Código real para cuando el microservicio esté disponible
-        URL_ALUMNOS = os.getenv('ALUMNOS_HOST', 'http://localhost:5000')
-        alumno_mapping = AlumnoMapping()
+        # Usar repositorio con cache Redis + retry automático
+        logger.debug(f'Buscando alumno {id} en repositorio (cache + HTTP)')
+        repo = AlumnoRepository()
+        
         try:
-            r = requests.get(f'{URL_ALUMNOS}/api/v1/alumnos/{id}', timeout=5)
-            if r.status_code == 404:
-                raise AlumnoNotFoundException(id)
-            elif r.status_code != 200:
-                raise ServiceUnavailableException('alumnos', f'Status code: {r.status_code}')
+            alumno = repo.get_alumno_by_id(id)
             
-            result = alumno_mapping.load(r.json())
-            return result
-        except requests.exceptions.Timeout:
-            raise ServiceUnavailableException('alumnos', 'Timeout al conectar')
-        except requests.exceptions.ConnectionError:
-            raise ServiceUnavailableException('alumnos', 'Error de conexión')
-        except requests.exceptions.RequestException as e:
+            if alumno is None:
+                logger.warning(f'Alumno {id} no encontrado en el microservicio')
+                raise AlumnoNotFoundException(id)
+            
+            logger.debug(f'Alumno {id} obtenido exitosamente')
+            return alumno
+            
+        except AlumnoNotFoundException:
+            raise
+        except Exception as e:
+            logger.error(f'Error al buscar alumno {id}: {str(e)}')
             raise ServiceUnavailableException('alumnos', str(e))
+    
+    @staticmethod
+    def _enriquecer_especialidad(alumno: Alumno) -> Alumno:
+        """
+        Enriquece el objeto alumno con datos completos de especialidad.
+        
+        Si el alumno solo tiene especialidad.id (sin nombre, facultad, etc.),
+        llama al EspecialidadRepository para obtener datos completos desde
+        el microservicio de gestión académica.
+        
+        Flujo:
+        1. Si USE_MOCK=true → Retorna sin cambios (mock ya tiene datos completos)
+        2. Si especialidad tiene 'nombre' → Ya está completa, retorna sin cambios
+        3. Si especialidad solo tiene 'id' → Llama a MS académica para enriquecer
+        
+        Args:
+            alumno: Objeto alumno que puede tener especialidad parcial o completa
+            
+        Returns:
+            Alumno con especialidad completa enriquecida
+            
+        Raises:
+            EspecialidadNotFoundException: Si la especialidad no existe
+            ServiceUnavailableException: Si el MS académica no responde
+            DocumentGenerationException: Si no hay datos de especialidad
+        """
+        USE_MOCK = os.getenv('USE_MOCK_DATA', 'true').lower() == 'true'
+        
+        if USE_MOCK:
+            logger.debug('Usando mock: especialidad ya incluida completa')
+            return alumno
+        
+        # Verificar si especialidad existe
+        if not hasattr(alumno, 'especialidad') or alumno.especialidad is None:
+            logger.error(f'Alumno {alumno.id} no tiene datos de especialidad')
+            raise DocumentGenerationException(
+                'certificado',
+                f'El alumno {alumno.id} no tiene información de especialidad'
+            )
+        
+        # Verificar si la especialidad ya tiene datos completos
+        if hasattr(alumno.especialidad, 'nombre') and alumno.especialidad.nombre:
+            logger.debug('Especialidad completa ya presente en el alumno')
+            return alumno
+        
+        # Si solo tiene ID, obtener especialidad completa del MS académica
+        if hasattr(alumno.especialidad, 'id') and alumno.especialidad.id:
+            especialidad_id = alumno.especialidad.id
+            logger.info(f'Enriqueciendo especialidad {especialidad_id} desde MS académica')
+            
+            repo = EspecialidadRepository()
+            
+            try:
+                especialidad_completa = repo.get_especialidad_by_id(especialidad_id)
+                
+                # Reemplazar especialidad parcial con datos completos
+                alumno.especialidad = especialidad_completa
+                logger.info(f'Especialidad {especialidad_id} enriquecida: {especialidad_completa.nombre}')
+                return alumno
+                
+            except EspecialidadNotFoundException:
+                logger.error(f'Especialidad {especialidad_id} no encontrada en MS académica')
+                raise
+            except ServiceUnavailableException:
+                logger.error(f'MS académica no disponible al buscar especialidad {especialidad_id}')
+                raise
+            except Exception as e:
+                logger.error(f'Error inesperado al obtener especialidad {especialidad_id}: {str(e)}')
+                raise ServiceUnavailableException('academica', str(e))
+        
+        # Si llegamos aquí, especialidad no tiene ID ni nombre
+        logger.error(f'Alumno {alumno.id} tiene especialidad inválida (sin ID ni nombre)')
+        raise DocumentGenerationException(
+            'certificado',
+            f'El alumno {alumno.id} tiene especialidad inválida'
+        )
     
     @staticmethod
     def _get_mock_alumno(id: int) -> Alumno:
