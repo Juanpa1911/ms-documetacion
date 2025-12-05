@@ -3,6 +3,7 @@ import os
 import requests
 import logging
 from io import BytesIO
+from validators import validate_with
 from app.mapping import AlumnoMapping
 from app.models import Alumno
 from app.services.documentos_office_service import obtener_tipo_documento
@@ -24,17 +25,21 @@ class CertificateService:
             logger.debug(f'Alumno encontrado: {alumno.nombre} {alumno.apellido}')
             
             logger.debug('Validando datos del alumno')
-            if not CertificateService._validar_datos_alumno(alumno):
+
+            validated = validate_with(AlumnoMapping, context=alumno)
+
+            # Si la validación falla, validated será una tupla (jsonify, 400)
+            if isinstance(validated, tuple):
                 logger.error(f'Datos incompletos para alumno {id}')
                 raise DocumentGenerationException(
                     f'El alumno {id} tiene datos incompletos. '
                     'Verifique que tenga nombre, apellido, documento, legajo, '
                     'tipo de documento y especialidad.'
                 )
-            
+
             logger.debug('Construyendo contexto con datos del alumno y relaciones')
             context = CertificateService._obtener_contexto_alumno(alumno)
-            
+
             logger.debug('Validando contexto completo')
             if not CertificateService._validar_contexto(context):
                 logger.error('Contexto incompleto para generar documento')
