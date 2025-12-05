@@ -20,11 +20,6 @@ class CertificateService:
         logger.info(f'Iniciando generación de certificado para alumno {id} en formato {tipo}')
         
         try:
-            if not validar_id_alumno(id):
-                logger.warning(f"ID de alumno inválido: {id}")
-                raise DocumentGenerationException(
-                    f"El ID del alumno debe ser un número positivo. Recibido: {id}"
-                )
 
             logger.debug(f'Buscando alumno con ID {id}')
             alumno = CertificateService._buscar_alumno_por_id(id)

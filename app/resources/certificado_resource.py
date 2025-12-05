@@ -1,6 +1,7 @@
 from flask import Blueprint, send_file, jsonify
 from app.services import AlumnoService
 from app.exceptions import DocumentGenerationException
+from app.validators import validar_id_alumno
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,7 +13,7 @@ certificado_bp = Blueprint('certificado', __name__)
 def certificado_en_pdf(id: int):
     """Genera certificado de alumno regular en formato PDF"""
     try:
-        validar_id_alumno(id)
+        _validar_id_alumno(id)
         logger.info(f"Generando certificado PDF para alumno ID: {id}")
         pdf_io = AlumnoService.generar_certificado_alumno_regular(id, 'pdf')
         return send_file(pdf_io, mimetype='application/pdf', as_attachment=False)
@@ -61,3 +62,10 @@ def reporte_en_docx(id: int):
     except Exception as e:
         logger.error(f"Error inesperado generando DOCX para alumno {id}: {str(e)}")
         raise
+
+def _validar_id_alumno(id: int):
+    if not validar_id_alumno(id):
+        logger.warning(f"ID de alumno inválido: {id}")
+        raise DocumentGenerationException(
+            f"El ID del alumno debe ser un número positivo. Recibido: {id}"
+        )

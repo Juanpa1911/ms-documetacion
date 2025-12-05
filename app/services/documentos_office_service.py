@@ -4,7 +4,7 @@ import os
 import logging
 from flask import current_app, render_template
 from python_odt_template import ODTTemplate
-#from weasyprint import HTML
+from weasyprint import HTML
 from python_odt_template.jinja import get_odt_renderer
 from docxtpl import DocxTemplate
 import jinja2
