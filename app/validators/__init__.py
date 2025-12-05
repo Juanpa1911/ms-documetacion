@@ -1,0 +1,1 @@
+from .certificado_validator import validate_with
