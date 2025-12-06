@@ -26,4 +26,15 @@ class AlumnoMapping(Schema):
 
     @post_load
     def nuevo_alumno(self, data, **kwargs):
-        return Alumno(**data)
+        alumno = Alumno()
+        alumno.id = data.get('id')
+        alumno.nombre = data.get('nombre')
+        alumno.apellido = data.get('apellido')
+        alumno.nrodocumento = data.get('nrodocumento')
+        alumno.legajo = data.get('legajo')
+        alumno.tipo_documento = data.get('tipo_documento')
+        alumno.especialidad = data.get('especialidad')
+        # Si solo viene especialidad_id, lo asignamos también
+        if 'especialidad_id' in data and not data.get('especialidad'):
+            alumno.especialidad_id = data.get('especialidad_id')
+        return alumno

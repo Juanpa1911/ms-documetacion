@@ -8,4 +8,8 @@ class TipoDocumentoMapping(Schema):
 
     @post_load
     def nueva_tipodocumento(self, data, **kwargs):
-        return TipoDocumento(**data)
+        tipo = TipoDocumento()
+        tipo.id = data.get('id')
+        tipo.nombre = data.get('nombre')
+        tipo.sigla = data.get('sigla')
+        return tipo

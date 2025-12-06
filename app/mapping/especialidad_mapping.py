@@ -11,4 +11,10 @@ class EspecialidadMapping(Schema):
 
     @post_load
     def nueva_especialidad(self, data, **kwargs):
-        return Especialidad(**data)
+        esp = Especialidad()
+        esp.id = data.get('id')
+        esp.nombre = data.get('nombre')
+        esp.letra = data.get('letra')
+        esp.observacion = data.get('observacion')
+        esp.facultad = data.get('facultad')
+        return esp

@@ -156,13 +156,19 @@ class TestRetryIntegracionRepositorios(unittest.TestCase):
                 'id': 1,
                 'nombre': 'Juan',
                 'apellido': 'Perez',
-                'documento': '12345678',
+                'nrodocumento': '12345678',
                 'legajo': 'L001',
-                'tipoDocumento': {'id': 1, 'descripcion': 'DNI'},
+                'tipo_documento': {
+                    'id': 1,
+                    'nombre': 'DNI',
+                    'sigla': 'DNI'
+                },
                 'especialidad': {
                     'id': 1,
-                    'nombre': 'Informática',
-                    'facultad': {'id': 1, 'nombre': 'FI', 'universidad': {'id': 1, 'nombre': 'UNT'}}
+                    'nombre': 'Ingeniería Informática',
+                    'letra': 'I',
+                    'observacion': 'Carrera de grado',
+                    'facultad': 'Facultad de Ingeniería'
                 }
             })
         ]
@@ -210,13 +216,19 @@ class TestRetryIntegracionRepositorios(unittest.TestCase):
                 'id': 1,
                 'nombre': 'Test',
                 'apellido': 'User',
-                'documento': '11111111',
+                'nrodocumento': '11111111',
                 'legajo': 'L999',
-                'tipoDocumento': {'id': 1, 'descripcion': 'DNI'},
+                'tipo_documento': {
+                    'id': 1,
+                    'nombre': 'DNI',
+                    'sigla': 'DNI'
+                },
                 'especialidad': {
                     'id': 1,
-                    'nombre': 'Test',
-                    'facultad': {'id': 1, 'nombre': 'FT', 'universidad': {'id': 1, 'nombre': 'UT'}}
+                    'nombre': 'Ingeniería en Sistemas de Información',
+                    'letra': 'I',
+                    'observacion': 'Carrera de grado',
+                    'facultad': 'Facultad Regional San Rafael'
                 }
             })
         ]
