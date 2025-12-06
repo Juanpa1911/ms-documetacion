@@ -2,12 +2,12 @@ from abc import ABC, abstractmethod
 from io import BytesIO
 import os
 import logging
+import tempfile
 from flask import current_app, render_template
 from python_odt_template import ODTTemplate
-from weasyprint import HTML
 from python_odt_template.jinja import get_odt_renderer
 from docxtpl import DocxTemplate
-import jinja2
+import jinja2 
 
 # Configurar logger para este módulo
 logger = logging.getLogger(__name__)
@@ -146,7 +146,6 @@ class ODTDocument(Document):
         odt_renderer = get_odt_renderer(media_path=media_path)
 
         odt_io = BytesIO()
-        import tempfile
         with tempfile.NamedTemporaryFile(suffix='.odt', delete=False) as temp_file:
             temp_path = temp_file.name
         
@@ -206,7 +205,6 @@ class DOCXDocument(Document):
         doc = DocxTemplate(path_template)
 
         docx_io = BytesIO()
-        import tempfile
         with tempfile.NamedTemporaryFile(suffix='.docx', delete=False) as temp_file:
             temp_path = temp_file.name
 
