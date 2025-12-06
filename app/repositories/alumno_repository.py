@@ -13,9 +13,17 @@ logger = logging.getLogger(__name__)
 class AlumnoRepository:
     """Repositorio para gestionar la obtención de alumnos con cache Redis"""
     
-    def __init__(self):
-        self.redis_client = RedisClient()
-        self.alumno_mapping = AlumnoMapping()
+    def __init__(self, redis_client: Optional[RedisClient] = None, 
+                 alumno_mapping: Optional[AlumnoMapping] = None):
+        """
+        Constructor con inyección de dependencias.
+        
+        Args:
+            redis_client: Cliente Redis (opcional, se crea uno por defecto)
+            alumno_mapping: Mapper de alumno (opcional, se crea uno por defecto)
+        """
+        self.redis_client = redis_client or RedisClient()
+        self.alumno_mapping = alumno_mapping or AlumnoMapping()
     
     def _get_cache_key(self, alumno_id: int) -> str:
         """Genera la clave de cache para un alumno"""

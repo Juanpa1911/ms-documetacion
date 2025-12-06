@@ -13,9 +13,17 @@ logger = logging.getLogger(__name__)
 class EspecialidadRepository:
     """Repositorio para gestionar la obtención de especialidades con cache Redis"""
     
-    def __init__(self):
-        self.redis_client = RedisClient()
-        self.especialidad_mapping = EspecialidadMapping()
+    def __init__(self, redis_client: Optional[RedisClient] = None,
+                 especialidad_mapping: Optional[EspecialidadMapping] = None):
+        """
+        Constructor con inyección de dependencias.
+        
+        Args:
+            redis_client: Cliente Redis (opcional, se crea uno por defecto)
+            especialidad_mapping: Mapper de especialidad (opcional, se crea uno por defecto)
+        """
+        self.redis_client = redis_client or RedisClient()
+        self.especialidad_mapping = especialidad_mapping or EspecialidadMapping()
     
     def _get_cache_key(self, especialidad_id: int) -> str:
         """Genera la clave de cache para una especialidad"""

@@ -14,8 +14,25 @@ from app.repositories.especialidad_repository import EspecialidadRepository
 logger = logging.getLogger(__name__)
 
 class CertificateService:
-    @staticmethod
-    def generar_certificado_alumno_regular(id: int, tipo: str) -> BytesIO:
+    """
+    Servicio para generación de certificados de alumnos.
+    
+    Implementa inyección de dependencias para facilitar testing y seguir SOLID (DIP).
+    """
+    
+    def __init__(self, alumno_repository: Optional[AlumnoRepository] = None,
+                 especialidad_repository: Optional[EspecialidadRepository] = None):
+        """
+        Constructor con inyección de dependencias.
+        
+        Args:
+            alumno_repository: Repositorio de alumnos (opcional)
+            especialidad_repository: Repositorio de especialidades (opcional)
+        """
+        self.alumno_repository = alumno_repository or AlumnoRepository()
+        self.especialidad_repository = especialidad_repository or EspecialidadRepository()
+    
+    def generar_certificado_alumno_regular(self, id: int, tipo: str) -> BytesIO:
 
 
         logger.info(f'Iniciando generación de certificado para alumno {id} en formato {tipo}')
@@ -23,12 +40,12 @@ class CertificateService:
         try:
 
             logger.debug(f'Buscando alumno con ID {id}')
-            alumno = CertificateService._buscar_alumno_por_id(id)
+            alumno = self._buscar_alumno_por_id(id)
             logger.debug(f'Alumno encontrado: {alumno.nombre} {alumno.apellido}')
             
             # Enriquecer especialidad si solo tiene ID (llamar a MS académica)
             logger.debug('Verificando y enriqueciendo datos de especialidad')
-            alumno = CertificateService._enriquecer_especialidad(alumno)
+            alumno = self._enriquecer_especialidad(alumno)
             
             logger.debug('Validando datos del alumno')
             if not validar_datos_alumno(alumno):
@@ -41,7 +58,7 @@ class CertificateService:
                 )
 
             logger.debug('Construyendo contexto con datos del alumno y relaciones')
-            context = CertificateService._obtener_contexto_alumno(alumno)
+            context = self._obtener_contexto_alumno(alumno)
 
             logger.debug('Validando contexto completo')
             if not validar_contexto(context):
@@ -90,8 +107,7 @@ class CertificateService:
             raise DocumentGenerationException(tipo, f'Error inesperado al generar certificado: {str(e)}')    
 
          
-    @staticmethod
-    def _obtener_contexto_alumno(alumno: Alumno) -> dict:
+    def _obtener_contexto_alumno(self, alumno: Alumno) -> dict:
         especialidad = alumno.especialidad
         facultad = especialidad.facultad
         universidad = facultad.universidad
@@ -100,12 +116,11 @@ class CertificateService:
             "especialidad": especialidad,
             "facultad": facultad,
             "universidad": universidad,
-            "fecha": CertificateService._obtener_fechaactual()
+            "fecha": self._obtener_fechaactual()
         }
     
     
-    @staticmethod
-    def _obtener_fechaactual():
+    def _obtener_fechaactual(self):
         """Obtiene la fecha actual formateada en español."""
         # Intentar configurar locale español (silenciosamente si falla)
         for loc in ['es_ES.UTF-8', 'es_AR.UTF-8', 'Spanish_Spain.1252', 'es_MX.UTF-8']:
@@ -118,8 +133,7 @@ class CertificateService:
         fecha_actual = datetime.datetime.now()
         return fecha_actual.strftime('%d de %B de %Y')
     
-    @staticmethod
-    def _buscar_alumno_por_id(id: int) -> Alumno:
+    def _buscar_alumno_por_id(self, id: int) -> Alumno:
         """
         Busca alumno por ID usando repositorio con cache Redis.
         
@@ -144,14 +158,14 @@ class CertificateService:
         
         if USE_MOCK:
             logger.debug(f'Usando datos mock para alumno {id}')
-            alumno_mock = CertificateService._get_mock_alumno(id)
+            alumno_mock = self._get_mock_alumno(id)
             if alumno_mock is None:
                 raise AlumnoNotFoundException(f'Alumno con ID {id} no encontrado')
             return alumno_mock
         
         # Usar repositorio con cache Redis + retry automático
         logger.debug(f'Buscando alumno {id} en repositorio (cache + HTTP)')
-        repo = AlumnoRepository()
+        repo = self.alumno_repository
         
         try:
             alumno = repo.get_alumno_by_id(id)
@@ -169,8 +183,7 @@ class CertificateService:
             logger.error(f'Error al buscar alumno {id}: {str(e)}')
             raise ServiceUnavailableException('alumnos', str(e))
     
-    @staticmethod
-    def _enriquecer_especialidad(alumno: Alumno) -> Alumno:
+    def _enriquecer_especialidad(self, alumno: Alumno) -> Alumno:
         """
         Enriquece el objeto alumno con datos completos de especialidad.
         
@@ -218,7 +231,7 @@ class CertificateService:
             especialidad_id = alumno.especialidad.id
             logger.info(f'Enriqueciendo especialidad {especialidad_id} desde MS académica')
             
-            repo = EspecialidadRepository()
+            repo = self.especialidad_repository
             
             try:
                 especialidad_completa = repo.get_especialidad_by_id(especialidad_id)

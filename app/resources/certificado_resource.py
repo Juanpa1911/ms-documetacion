@@ -7,6 +7,10 @@ import logging
 logger = logging.getLogger(__name__)
 certificado_bp = Blueprint('certificado', __name__)
 
+# Instancia única del servicio (Singleton a nivel de módulo)
+# En producción se podría usar un contenedor de inyección de dependencias
+_alumno_service = AlumnoService()
+
 # Configuración de formatos soportados
 FORMATOS_SOPORTADOS = {
     'pdf': {
@@ -37,7 +41,7 @@ def _generar_certificado(alumno_id: int, formato: str):
         )
     
     logger.info(f"Generando certificado {formato.upper()} para alumno ID: {alumno_id}")
-    documento = AlumnoService.generar_certificado_alumno_regular(alumno_id, formato)
+    documento = _alumno_service.generar_certificado_alumno_regular(alumno_id, formato)
     
     config = FORMATOS_SOPORTADOS[formato]
     download_name = config['download_name'].format(id=alumno_id) if config['download_name'] else None
