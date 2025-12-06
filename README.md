@@ -86,12 +86,12 @@ Ver [Guía de Despliegue](./docs/DEPLOYMENT.md) para más detalles.
 
 ## 📚 Documentación
 
-| Documento | Descripción |
-|-----------|-------------|
-| [**ARCHITECTURE.md**](./docs/ARCHITECTURE.md) | Arquitectura en capas, componentes, patrones, decisiones técnicas |
-| [**API.md**](./docs/API.md) | Endpoints, request/response, ejemplos curl/Python, códigos de error |
-| [**DEPLOYMENT.md**](./docs/DEPLOYMENT.md) | Despliegue local, Docker, producción, troubleshooting |
-| [**PATRONES_MICROSERVICIOS.md**](./PATRONES_MICROSERVICIOS.md) | Implementación de patrones de resiliencia |
+| Documento                                                      | Descripción                                                         |
+| -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [**ARCHITECTURE.md**](./docs/ARCHITECTURE.md)                  | Arquitectura en capas, componentes, patrones, decisiones técnicas   |
+| [**API.md**](./docs/API.md)                                    | Endpoints, request/response, ejemplos curl/Python, códigos de error |
+| [**DEPLOYMENT.md**](./docs/DEPLOYMENT.md)                      | Despliegue local, Docker, producción, troubleshooting               |
+| [**PATRONES_MICROSERVICIOS.md**](./PATRONES_MICROSERVICIOS.md) | Implementación de patrones de resiliencia                           |
 
 ---
 
@@ -115,6 +115,7 @@ Ver [Guía de Despliegue](./docs/DEPLOYMENT.md) para más detalles.
 ```
 
 **Capas**:
+
 1. **Resources**: Endpoints HTTP, validación de entrada
 2. **Services**: Lógica de negocio, orquestación
 3. **Repositories**: Acceso a datos, cache-aside pattern
@@ -127,30 +128,35 @@ Ver [ARCHITECTURE.md](./docs/ARCHITECTURE.md) para más detalles.
 ## 🔌 API Endpoints
 
 ### Health Check
+
 ```bash
 GET /api/v1/health
 # Response: {"status": "ok", "service": "documentos-service"}
 ```
 
 ### Generar Certificado PDF
+
 ```bash
 GET /api/v1/certificado/{id}/pdf
 # Response: application/pdf (binary)
 ```
 
 ### Generar Certificado DOCX
+
 ```bash
 GET /api/v1/certificado/{id}/docx
 # Response: application/vnd.openxmlformats-officedocument.wordprocessingml.document
 ```
 
 ### Generar Certificado ODT
+
 ```bash
 GET /api/v1/certificado/{id}/odt
 # Response: application/vnd.oasis.opendocument.text
 ```
 
 **Ejemplo**:
+
 ```bash
 curl -o certificado.pdf \
   http://documentos.universidad.localhost/api/v1/certificado/123/pdf
@@ -162,9 +168,71 @@ Ver [API.md](./docs/API.md) para documentación completa con ejemplos Python, c�
 
 ## 💻 Desarrollo Local
 
-### Requisitos
-- Python 3.12+
-- Redis (Docker o local)
+### 📦 Requisitos del Sistema
+
+#### Requisitos Mínimos
+
+- **Python**: 3.12 o superior
+- **Docker**: 20.10+ (para contenedores)
+- **Docker Compose**: 2.0+ (para orquestación)
+- **Redis**: 7.0+ (para cache)
+- **RAM**: 2GB mínimo (4GB recomendado)
+- **Disco**: 500MB espacio libre
+
+#### Dependencias de Sistema (para desarrollo local sin Docker)
+
+**Linux (Ubuntu/Debian)**:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y \
+  python3.12 python3.12-venv python3-pip \
+  libpango-1.0-0 libpangoft2-1.0-0 libcairo2 \
+  libgdk-pixbuf-2.0-0 libffi-dev shared-mime-info \
+  build-essential
+```
+
+**Windows**:
+
+- Python 3.12+ desde [python.org](https://www.python.org/downloads/)
+- GTK3 Runtime desde [GTK for Windows](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer)
+- Visual C++ Build Tools (para WeasyPrint)
+
+#### Dependencias Python (Principales)
+
+Las siguientes dependencias se instalan automáticamente desde `pyproject.toml`:
+
+**Framework y Servidor**:
+
+- `flask==3.1.2` - Framework web minimalista
+- `granian>=1.0.0` - Servidor ASGI de alta performance
+
+**Generación de Documentos**:
+
+- `weasyprint==65.1` - Conversión HTML → PDF
+- `docxtpl==0.20.0` - Generación de archivos DOCX con templates
+- `python-odt-template==0.5.1` - Generación de archivos ODT
+
+**Persistencia y Cache**:
+
+- `redis==4.5.5` - Cliente Redis para cache distribuido
+
+**Utilidades**:
+
+- `marshmallow==4.0.1` - Serialización y validación de datos
+- `requests==2.32.5` - Cliente HTTP para llamadas a microservicios
+- `python-dotenv==1.1.1` - Gestión de variables de entorno
+
+**Testing y Calidad**:
+
+- `pytest>=8.0.0` - Framework de testing
+- `pytest-cov>=4.1.0` - Análisis de cobertura de código
+- `pyrefly==0.38.2` - Análisis estático de código
+
+**Versión Python requerida**: `>=3.12`
+
+> **Nota**: Todas las dependencias se instalan automáticamente con `pip install -e .`  
+> Ver [`pyproject.toml`](./pyproject.toml) para la lista completa.
 
 ### Setup
 
@@ -262,22 +330,26 @@ coverage html  # Genera reporte en htmlcov/
 ## 🛠️ Tecnologías
 
 ### Backend
+
 - **Flask 3.1.2**: Framework web
 - **Granian**: Servidor ASGI de alta performance
 - **Marshmallow 4.0.1**: Serialización y validación
 - **Redis 7**: Cache distribuido
 
 ### Generación de Documentos
+
 - **WeasyPrint 65.1**: HTML → PDF
 - **docxtpl 0.20.0**: DOCX con templates Jinja2
 - **python-odt-template 0.5.1**: ODT templates
 
 ### Infraestructura
+
 - **Traefik v3.5**: Reverse proxy, load balancer
 - **Docker + Docker Compose**: Containerización
 - **Redis**: Cache layer
 
 ### Testing & Quality
+
 - **unittest**: Framework de testing
 - **coverage**: Análisis de cobertura
 - **GitHub Actions**: CI/CD
@@ -286,13 +358,13 @@ coverage html  # Genera reporte en htmlcov/
 
 ## 📊 Patrones de Resiliencia
 
-| Patrón | Implementación | Configuración |
-|--------|----------------|---------------|
-| **Load Balancing** | Traefik Round Robin | 2+ réplicas |
-| **Retry** | Decorator + Traefik | 3 intentos (código), 4 intentos (Traefik) |
-| **Rate Limit** | Traefik Middleware | 100 req/s, burst 50 |
-| **Circuit Breaker** | Traefik | Latencia >100ms, errores >25% |
-| **Cache** | Redis Cache-Aside | TTL 300s-600s |
+| Patrón              | Implementación      | Configuración                             |
+| ------------------- | ------------------- | ----------------------------------------- |
+| **Load Balancing**  | Traefik Round Robin | 2+ réplicas                               |
+| **Retry**           | Decorator + Traefik | 3 intentos (código), 4 intentos (Traefik) |
+| **Rate Limit**      | Traefik Middleware  | 100 req/s, burst 50                       |
+| **Circuit Breaker** | Traefik             | Latencia >100ms, errores >25%             |
+| **Cache**           | Redis Cache-Aside   | TTL 300s-600s                             |
 
 Ver [PATRONES_MICROSERVICIOS.md](./PATRONES_MICROSERVICIOS.md) para detalles de implementación.
 
@@ -301,6 +373,7 @@ Ver [PATRONES_MICROSERVICIOS.md](./PATRONES_MICROSERVICIOS.md) para detalles de 
 ## 🤝 Contributing
 
 ### Reportar Bugs
+
 [Abrir Issue](https://github.com/Juanpa1911/ms-documetacion/issues/new)
 
 ### Desarrollo
@@ -321,6 +394,7 @@ git push origin feature/nueva-funcionalidad
 ```
 
 ### Guidelines
+
 - Seguir arquitectura en capas existente
 - Agregar tests para nuevas funcionalidades
 - Mantener coverage >70%
