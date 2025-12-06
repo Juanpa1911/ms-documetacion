@@ -1,0 +1,279 @@
+{
+  "options": {
+    "summaryTrendStats": [
+      "avg",
+      "min",
+      "med",
+      "max",
+      "p(90)",
+      "p(95)"
+    ],
+    "summaryTimeUnit": "",
+    "noColor": false
+  },
+  "state": {
+    "isStdOutTTY": true,
+    "isStdErrTTY": true,
+    "testRunDurationMs": 30985.747202
+  },
+  "metrics": {
+    "http_req_sending": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "med": 0.097439,
+        "max": 0.390861,
+        "p(90)": 0.15879559999999998,
+        "p(95)": 0.23487089999999977,
+        "avg": 0.12290053333333333,
+        "min": 0.074128
+      }
+    },
+    "http_req_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(95)": 203.4922028999999,
+        "avg": 63.01339726666666,
+        "min": 1.287583,
+        "med": 17.677475,
+        "max": 249.504304,
+        "p(90)": 165.00401019999998
+      },
+      "thresholds": {
+        "p(95)<1000": {
+          "ok": true
+        }
+      }
+    },
+    "vus_max": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "max": 1,
+        "value": 1,
+        "min": 1
+      }
+    },
+    "http_req_tls_handshaking": {
+      "values": {
+        "min": 0,
+        "med": 0,
+        "max": 3.327017,
+        "p(90)": 0,
+        "p(95)": 0.9981050999999965,
+        "avg": 0.22180113333333334
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "iterations": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 5,
+        "rate": 0.16136451276789837
+      }
+    },
+    "http_req_receiving": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "max": 0.545492,
+        "p(90)": 0.4282194,
+        "p(95)": 0.49145549999999993,
+        "avg": 0.2307342,
+        "min": 0.042617,
+        "med": 0.244176
+      }
+    },
+    "successful_requests": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "rate": 0.4840935383036951,
+        "count": 15
+      }
+    },
+    "http_req_blocked": {
+      "values": {
+        "p(90)": 0.0007539999999999999,
+        "p(95)": 1.110608899999996,
+        "avg": 0.24712846666666669,
+        "min": 0.000239,
+        "med": 0.000443,
+        "max": 3.700233
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "http_req_duration{expected_response:true}": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 63.01339726666666,
+        "min": 1.287583,
+        "med": 17.677475,
+        "max": 249.504304,
+        "p(90)": 165.00401019999998,
+        "p(95)": 203.4922028999999
+      }
+    },
+    "http_req_connecting": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(95)": 0.018642899999999935,
+        "avg": 0.004142866666666667,
+        "min": 0,
+        "med": 0,
+        "max": 0.062143,
+        "p(90)": 0
+      }
+    },
+    "data_sent": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "count": 4225,
+        "rate": 136.3530132888741
+      }
+    },
+    "data_received": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "count": 383404,
+        "rate": 12373.559930652662
+      }
+    },
+    "vus": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "max": 1,
+        "value": 1,
+        "min": 1
+      }
+    },
+    "http_req_waiting": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 164.63864579999998,
+        "p(95)": 203.03980599999994,
+        "avg": 62.659762533333335,
+        "min": 1.152929,
+        "med": 17.214413,
+        "max": 248.846427
+      }
+    },
+    "http_reqs": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 15,
+        "rate": 0.4840935383036951
+      }
+    },
+    "checks": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 1,
+        "passes": 40,
+        "fails": 0
+      }
+    },
+    "iteration_duration": {
+      "values": {
+        "p(95)": 6261.5212688,
+        "avg": 6197.0872344,
+        "min": 6159.993997,
+        "med": 6166.587004,
+        "max": 6270.311191,
+        "p(90)": 6252.7313466
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "http_req_failed": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0,
+        "passes": 0,
+        "fails": 15
+      },
+      "thresholds": {
+        "rate<0.01": {
+          "ok": true
+        }
+      }
+    }
+  },
+  "root_group": {
+    "name": "",
+    "path": "",
+    "id": "d41d8cd98f00b204e9800998ecf8427e",
+    "groups": [],
+    "checks": [
+        {
+          "name": "health status is 200",
+          "path": "::health status is 200",
+          "id": "ab698ad652ee317628077e42e47eda00",
+          "passes": 5,
+          "fails": 0
+        },
+        {
+          "fails": 0,
+          "name": "health returns correct JSON",
+          "path": "::health returns correct JSON",
+          "id": "51b411139213a81c84ab308a02686f96",
+          "passes": 5
+        },
+        {
+          "fails": 0,
+          "name": "pdf status is 200",
+          "path": "::pdf status is 200",
+          "id": "187feabe90ea8c136e306b423896e0bf",
+          "passes": 5
+        },
+        {
+          "name": "pdf content type is correct",
+          "path": "::pdf content type is correct",
+          "id": "5827d57a21ff8ae47a39710796412a19",
+          "passes": 5,
+          "fails": 0
+        },
+        {
+          "id": "16b8be50333eba89934f4f3478eea30d",
+          "passes": 5,
+          "fails": 0,
+          "name": "pdf has content",
+          "path": "::pdf has content"
+        },
+        {
+          "fails": 0,
+          "name": "docx status is 200",
+          "path": "::docx status is 200",
+          "id": "ab05d4db69f6284975da54d601831f5f",
+          "passes": 5
+        },
+        {
+          "fails": 0,
+          "name": "docx content type is correct",
+          "path": "::docx content type is correct",
+          "id": "98bebab0895925d0fd1035f37a6e002c",
+          "passes": 5
+        },
+        {
+          "name": "docx has content",
+          "path": "::docx has content",
+          "id": "19da6d75965cf68c796d319691e1843f",
+          "passes": 5,
+          "fails": 0
+        }
+      ]
+  }
+}

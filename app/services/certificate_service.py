@@ -144,7 +144,10 @@ class CertificateService:
         
         if USE_MOCK:
             logger.debug(f'Usando datos mock para alumno {id}')
-            return CertificateService._get_mock_alumno(id)
+            alumno_mock = CertificateService._get_mock_alumno(id)
+            if alumno_mock is None:
+                raise AlumnoNotFoundException(f'Alumno con ID {id} no encontrado')
+            return alumno_mock
         
         # Usar repositorio con cache Redis + retry automático
         logger.debug(f'Buscando alumno {id} en repositorio (cache + HTTP)')
@@ -247,6 +250,24 @@ class CertificateService:
         """Retorna datos mock de un alumno para testing"""
         from app.models import Especialidad, TipoDocumento, Facultad, Universidad
         
+        # Base de datos mock de alumnos para pruebas de rendimiento
+        alumnos_mock = {
+            1: {"nombre": "MARIANO PABLO CRISTOBAL", "apellido": "SOSA", "doc": "42532964", "legajo": "12652", "especialidad": "ISI"},
+            2: {"nombre": "JUAN CARLOS", "apellido": "PÉREZ", "doc": "38456789", "legajo": "12345", "especialidad": "ISI"},
+            3: {"nombre": "MARÍA FERNANDA", "apellido": "GONZÁLEZ", "doc": "40123456", "legajo": "12678", "especialidad": "IEM"},
+            5: {"nombre": "ROBERTO LUIS", "apellido": "MARTÍNEZ", "doc": "35987654", "legajo": "11890", "especialidad": "ISI"},
+            8: {"nombre": "ANA SOFÍA", "apellido": "RODRÍGUEZ", "doc": "41234567", "legajo": "13001", "especialidad": "IQ"},
+            13: {"nombre": "DIEGO ALBERTO", "apellido": "FERNÁNDEZ", "doc": "39876543", "legajo": "12789", "especialidad": "IC"},
+            21: {"nombre": "LAURA BEATRIZ", "apellido": "LÓPEZ", "doc": "43210987", "legajo": "13456", "especialidad": "ISI"},
+            34: {"nombre": "CARLOS EDUARDO", "apellido": "RAMÍREZ", "doc": "37654321", "legajo": "11567", "especialidad": "IEM"},
+        }
+        
+        # Si el ID no está en mock, retornar None (404)
+        if id not in alumnos_mock:
+            return None
+        
+        datos = alumnos_mock[id]
+        
         # Mock de Universidad
         universidad = Universidad()
         universidad.id = 1
@@ -260,11 +281,21 @@ class CertificateService:
         facultad.provincia = "Mendoza"
         facultad.universidad = universidad
         
-        # Mock de Especialidad
+        # Especialidades según código
+        especialidades_map = {
+            "ISI": {"id": 1, "nombre": "Ingeniería en Sistemas de Información"},
+            "IEM": {"id": 2, "nombre": "Ingeniería Electromecánica"},
+            "IQ": {"id": 3, "nombre": "Ingeniería Química"},
+            "IC": {"id": 4, "nombre": "Ingeniería Civil"}
+        }
+        
+        esp_code = datos["especialidad"]
+        esp_data = especialidades_map.get(esp_code, especialidades_map["ISI"])
+        
         especialidad = Especialidad()
-        especialidad.id = 1
-        especialidad.nombre = "Ingeniería en Sistemas de Información"
-        especialidad.letra = "ISI"
+        especialidad.id = esp_data["id"]
+        especialidad.nombre = esp_data["nombre"]
+        especialidad.letra = esp_code
         especialidad.observacion = "Especialidad de grado"
         especialidad.facultad = facultad
         
@@ -276,10 +307,10 @@ class CertificateService:
         # Mock de Alumno
         alumno = Alumno()
         alumno.id = id
-        alumno.nombre = "MARIANO PABLO CRISTOBAL"
-        alumno.apellido = "SOSA"
-        alumno.nrodocumento = "42532964"
-        alumno.legajo = "12652"
+        alumno.nombre = datos["nombre"]
+        alumno.apellido = datos["apellido"]
+        alumno.nrodocumento = datos["doc"]
+        alumno.legajo = datos["legajo"]
         alumno.tipo_documento = tipo_documento
         alumno.especialidad = especialidad
         
