@@ -9,6 +9,11 @@
 - **Ricardo Alberto Sosa**
 - **Cristobal Buttini**
 
+IMPORTANTE: Profe no nos quedo claro como teníamos que recibir y procesar los datos que recibiriamos de los otros microservicios ya que no
+tuvimos oportunidad de conectarlo con alguno de unestros compañeros a pesar de los pedimos, trabajamos con los datos hardcodeados con mocks
+y funciono todo, de igual manera dejamos las conexiones hacia los otros microservicios del modo que creemos correcto pero no pudimos 
+probarlo desde ya muchas gracias y apiadece de nosotros, felices fiestas? 🤨😅
+
 ---
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
