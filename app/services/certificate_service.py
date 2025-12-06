@@ -1,5 +1,6 @@
 import datetime
 import os
+import locale
 import logging
 from io import BytesIO
 from app.validators import validar_datos_alumno, validar_contexto, validar_id_alumno
@@ -79,7 +80,7 @@ class CertificateService:
             return resultado
 
             
-        except (AlumnoNotFoundException, DocumentGenerationException):
+        except (AlumnoNotFoundException, DocumentGenerationException) as e:
             # Re-lanzar excepciones personalizadas sin modificar
             logger.error(f'Error controlado al generar certificado: {str(e)}')
             raise
@@ -105,18 +106,17 @@ class CertificateService:
     
     @staticmethod
     def _obtener_fechaactual():
-        import locale
-        try:
-            locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
-        except:
+        """Obtiene la fecha actual formateada en español."""
+        # Intentar configurar locale español (silenciosamente si falla)
+        for loc in ['es_ES.UTF-8', 'es_AR.UTF-8', 'Spanish_Spain.1252', 'es_MX.UTF-8']:
             try:
-                locale.setlocale(locale.LC_TIME, 'es_AR.UTF-8')
-            except:
-                pass  # Usar locale por defecto
+                locale.setlocale(locale.LC_TIME, loc)
+                break
+            except locale.Error:
+                continue
         
         fecha_actual = datetime.datetime.now()
-        fecha_str = fecha_actual.strftime('%d de %B de %Y')
-        return fecha_str
+        return fecha_actual.strftime('%d de %B de %Y')
     
     @staticmethod
     def _buscar_alumno_por_id(id: int) -> Alumno:
