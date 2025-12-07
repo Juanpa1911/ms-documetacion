@@ -19,7 +19,7 @@ probarlo desde ya muchas gracias y apiadece de nosotros, felices fiestas? 🤨�
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Flask 3.1.2](https://img.shields.io/badge/flask-3.1.2-green.svg)](https://flask.palletsprojects.com/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/tests-29%20passing-brightgreen.svg)](./test/)
+[![Tests](https://img.shields.io/badge/tests-75%20passing-brightgreen.svg)](./test/)
 [![Coverage](https://img.shields.io/badge/coverage-70%25+-success.svg)](./docs/ARCHITECTURE.md#testing)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
@@ -27,12 +27,13 @@ Microservicio para la generación de certificados de alumnos regulares en múlti
 
 ## ✨ Características
 
-- 🚀 **Alta Performance**: Granian WSGI server + Load Balancing (2+ réplicas)
+- 🚀 **Alta Performance**: Granian WSGI server + Load Balancing (2+ réplicas) - 100% éxito en load tests
 - 🛡️ **Resiliencia**: Circuit Breaker, Retry, Rate Limit (100 req/s)
 - ⚡ **Cache Inteligente**: Redis con TTL (5 minutos alumnos, 10 minutos especialidades)
 - 📄 **Múltiples Formatos**: PDF, DOCX, ODT
-- 🧪 **Testing Completo**: 29 tests unitarios + integración (coverage >70%)
-- 📊 **Monitoreable**: Logging estructurado, métricas Traefik
+- 🧪 **Testing Completo**: 75 tests unitarios + integración (coverage >70%)
+- 📊 **Performance Validada**: k6 tests (7,010 req load, 4,660 req spike)
+- 🖥️ **Optimizado**: CPU 0-3% idle, RAM 193-352 MiB, Docker 675 MB
 - 🔐 **Seguro**: Validación de entrada, manejo de errores robusto
 
 ## 📋 Tabla de Contenidos
@@ -65,7 +66,8 @@ cp .env.example .env
 docker-compose up -d
 
 # 4. Verificar
-curl http://documentos.universidad.localhost/api/v1/health
+curl -k https://documentos.universidad.localhost/api/v1/health
+# O con HTTP: curl http://documentos.universidad.localhost/api/v1/health
 ```
 
 ### Opción 2: Desarrollo Local
@@ -85,18 +87,19 @@ export USE_MOCK_DATA=true
 flask --app app run --debug
 ```
 
-Ver [Guía de Despliegue](./docs/DEPLOYMENT.md) para más detalles.
+Ver [Guía de Despliegue](./Documentacion/DEPLOYMENT.md) para más detalles.
 
 ---
 
 ## 📚 Documentación
 
-| Documento                                                      | Descripción                                                         |
-| -------------------------------------------------------------- | ------------------------------------------------------------------- |
-| [**ARCHITECTURE.md**](./docs/ARCHITECTURE.md)                  | Arquitectura en capas, componentes, patrones, decisiones técnicas   |
-| [**API.md**](./docs/API.md)                                    | Endpoints, request/response, ejemplos curl/Python, códigos de error |
-| [**DEPLOYMENT.md**](./docs/DEPLOYMENT.md)                      | Despliegue local, Docker, producción, troubleshooting               |
-| [**PATRONES_MICROSERVICIOS.md**](./PATRONES_MICROSERVICIOS.md) | Implementación de patrones de resiliencia                           |
+| Documento | Descripción |
+|-----------|-------------|
+| [**ARCHITECTURE.md**](./Documentacion/ARCHITECTURE.md) | Arquitectura en capas, componentes, patrones, 12-factor app, TDD |
+| [**API.md**](./Documentacion/API.md) | Endpoints, request/response, ejemplos curl/Python, códigos de error |
+| [**DEPLOYMENT.md**](./Documentacion/DEPLOYMENT.md) | Despliegue local, Docker, producción, troubleshooting |
+| [**PATRONES_MICROSERVICIOS.md**](./Documentacion/PATRONES_MICROSERVICIOS.md) | Patrones de resiliencia (Retry, Cache, Circuit Breaker, DRY/KISS/SOLID) |
+| [**pruebas-k6.md**](./performance/pruebas-k6.md) | Resultados de performance testing (smoke, load, spike) |
 
 ---
 
@@ -126,7 +129,7 @@ Ver [Guía de Despliegue](./docs/DEPLOYMENT.md) para más detalles.
 3. **Repositories**: Acceso a datos, cache-aside pattern
 4. **Models**: Entidades de dominio (dataclasses)
 
-Ver [ARCHITECTURE.md](./docs/ARCHITECTURE.md) para más detalles.
+Ver [ARCHITECTURE.md](./Documentacion/ARCHITECTURE.md) para más detalles.
 
 ---
 
@@ -163,8 +166,13 @@ GET /api/v1/certificado/{id}/odt
 **Ejemplo**:
 
 ```bash
+# Con HTTPS (requiere -k por certificado autofirmado)
+curl -k -o certificado.pdf \
+  https://documentos.universidad.localhost/api/v1/certificado/1/pdf
+
+# Con HTTP (sin SSL)
 curl -o certificado.pdf \
-  http://documentos.universidad.localhost/api/v1/certificado/123/pdf
+  http://documentos.universidad.localhost/api/v1/certificado/1/pdf
 ```
 
 Ver [API.md](./docs/API.md) para documentación completa con ejemplos Python, códigos de error, etc.
@@ -300,7 +308,7 @@ docker-compose logs -f documentos-service
 docker-compose up -d --scale documentos-service=4
 ```
 
-Ver [DEPLOYMENT.md](./docs/DEPLOYMENT.md) para configuración avanzada, troubleshooting y producción.
+Ver [DEPLOYMENT.md](./Documentacion/DEPLOYMENT.md) para configuración avanzada, troubleshooting y producción.
 
 ---
 
@@ -325,10 +333,50 @@ coverage html  # Genera reporte en htmlcov/
 
 ### Estadísticas
 
-- **Total tests**: 29
+- **Total tests**: 75 tests (100% pasando)
 - **test_app.py**: 16 tests (endpoints, configuración, errores)
 - **test_integration.py**: 13 tests (Redis, generación PDF/DOCX/ODT, cache)
+- **test_retry.py**: 10 tests (patrón retry con backoff exponencial)
+- **test_error_handlers.py**: 5 tests (manejo de errores HTTP)
+- **test_exceptions.py**: 11 tests (excepciones personalizadas)
+- **test_middleware.py**: 6 tests (logging y error middleware)
+- **test_repositories.py**: 8 tests (repositorios con cache, Redis client)
+- **test_validator_alumno.py**: 6 tests (validación de datos de alumno)
 - **Coverage**: >70% (configurado en `pyproject.toml`)
+
+### Performance Testing (k6)
+
+```bash
+# Smoke test (validación básica)
+k6 run performance/scripts/smoke-test.js
+
+# Load test (carga sostenida - 50 VUs, 9 min)
+k6 run performance/scripts/load-test.js
+
+# Spike test (picos de tráfico - 100 VUs)
+k6 run performance/scripts/spike-test.js
+```
+
+**Resultados validados**:
+- ✅ Smoke: 100% éxito (15 requests)
+- ✅ Load: 100% éxito (7,010 requests, 0% errores)
+- ✅ Spike: 83.18% éxito (4,660 requests, 15% rate limited)
+
+Ver [pruebas-k6.md](./performance/pruebas-k6.md) para análisis completo.
+
+### Entorno de Testing
+
+**Hardware**:
+- CPU: Intel Core i5-12450HX (12 núcleos, 55W TDP)
+- RAM: 16GB DDR5 @ 4800 MT/s
+- Storage: NVMe 1TB
+
+**Software**:
+- OS: Linux (Kubuntu 24.04) - Docker nativo sin virtualización
+- Docker: 2 réplicas × 4 workers Granian
+
+**Nota**: Resultados representan rendimiento real en producción Linux. En Windows (WSL2/Hyper-V) esperar +20-30% overhead por virtualización.
+
 
 ---
 
@@ -371,15 +419,11 @@ coverage html  # Genera reporte en htmlcov/
 | **Circuit Breaker** | Traefik             | Latencia >100ms, errores >25%             |
 | **Cache**           | Redis Cache-Aside   | TTL 300s-600s                             |
 
-Ver [PATRONES_MICROSERVICIOS.md](./PATRONES_MICROSERVICIOS.md) para detalles de implementación.
+Ver [PATRONES_MICROSERVICIOS.md](./Documentacion/PATRONES_MICROSERVICIOS.md) para detalles de implementación.
 
 ---
 
 ## 🤝 Contributing
-
-### Reportar Bugs
-
-[Abrir Issue](https://github.com/Juanpa1911/ms-documetacion/issues/new)
 
 ### Desarrollo
 
