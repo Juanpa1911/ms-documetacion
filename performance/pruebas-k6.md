@@ -5,6 +5,31 @@
 
 ---
 
+## Entorno de Testing
+
+**Sistema Operativo:**
+- OS: Linux (Kubuntu 24.04)
+- Kernel: Linux nativo
+- Docker: Ejecución nativa (sin virtualización WSL2/Hyper-V)
+
+**Hardware:**
+- **CPU**: Intel Core i5-12450HX (12 núcleos: 4P + 8E, 12 hilos)
+- **RAM**: 16GB DDR5 @ 4800 MT/s (Dual-channel)
+- **GPU**: NVIDIA RTX 3050 6GB + Intel UHD (Alder Lake)
+- **Storage**: NVMe Crucial P3 1TB (sistema) + Micron 512GB (datos)
+- **TDP**: 55W
+
+**Configuración Docker:**
+- 2 réplicas del microservicio
+- 4 workers Granian por réplica
+- Redis 7 en contenedor
+- Traefik v3.5 como gateway
+
+**Nota Importante:**  
+Los resultados reflejan el **rendimiento real esperado en entornos de producción Linux** (AWS, GCP, Azure, Kubernetes). Docker corre nativamente en Linux sin overhead de virtualización. En Windows con Docker Desktop (WSL2/Hyper-V), se esperaría un overhead adicional de **20-30% en CPU** y **30-40% en memoria** debido a la capa de virtualización, con latencias **50-80% superiores**.
+
+---
+
 ## 1. Smoke Test (Prueba de Humo)
 
 ### Configuración

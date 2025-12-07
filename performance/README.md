@@ -4,6 +4,22 @@
 
 Scripts de k6 para evaluar el rendimiento del microservicio de documentación bajo diferentes escenarios de carga.
 
+## 🖥️ Entorno de Testing
+
+**Sistema Operativo:**
+- Linux (Kubuntu 24.04) con Docker nativo (sin virtualización)
+
+**Hardware:**
+- **CPU**: Intel Core i5-12450HX (12 núcleos, 55W TDP)
+- **RAM**: 16GB DDR5 @ 4800 MT/s
+- **Storage**: NVMe 1TB
+
+**Configuración Docker:**
+- 2 réplicas × 4 workers Granian
+- Redis 7 + Traefik v3.5
+
+**Nota**: Resultados válidos para producción Linux. En Windows (WSL2/Hyper-V) esperar +20-30% overhead.
+
 ## 📋 Scripts Disponibles
 
 ### 1. Smoke Test (`smoke-test.js`)
