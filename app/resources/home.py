@@ -1,4 +1,5 @@
 import time
+import os
 from datetime import datetime
 from flask import jsonify, Blueprint, current_app
 from flask.wrappers import Response
@@ -54,6 +55,18 @@ def health() -> Response:
         200: Todos los servicios saludables
         503: Alguna dependencia crítica no disponible
     """
+    use_mock_data = os.getenv('USE_MOCK_DATA', 'false').lower() == 'true'
+    
+    # Si usa datos mock, retorna health check simple
+    if use_mock_data:
+        return jsonify({
+            'status': 'ok',
+            'service': 'documentos-service',
+            'mode': 'mock',
+            'timestamp': datetime.utcnow().isoformat() + 'Z'
+        }), 200
+    
+    # Health check profundo para producción
     checks = {
         'status': 'healthy',
         'service': 'documentos-service',

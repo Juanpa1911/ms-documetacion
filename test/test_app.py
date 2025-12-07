@@ -10,6 +10,7 @@ class AppTestCase(unittest.TestCase):
 
     def setUp(self):
         os.environ['FLASK_CONTEXT'] = 'testing'
+        os.environ['USE_MOCK_DATA'] = 'true'
         self.app = create_app()
         self.app_context = self.app.app_context()
         self.app_context.push()
