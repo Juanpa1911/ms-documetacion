@@ -3,6 +3,7 @@ import os
 import locale
 import logging
 from io import BytesIO
+from typing import Optional
 from app.validators import validar_datos_alumno, validar_contexto, validar_id_alumno
 from app.models import Alumno
 from app.services.documentos_office_service import obtener_tipo_documento
